@@ -1,0 +1,659 @@
+﻿@page "/Register"
+@using Microsoft.AspNetCore.Authorization;
+@inject IRepository repository
+@inject IConfiguration Configuracion
+@inject SweetAlertService sweetAlertService
+@inject NavigationManager navigationManager
+@using Microsoft.AspNetCore.Identity;
+@inject ILoginService loginService
+@attribute [Authorize]
+
+
+@if (roles is null)
+{
+    <div class="spinner" />
+}
+else
+{
+    <h3>Registrar Nuevo Usuario</h3>
+
+    <EditForm Model="userDTO" OnValidSubmit="CreateUserAsync">
+        <DataAnnotationsValidator />
+        <h5>Campo obligatorio *</h5>
+        <div class="row">
+            <div class="col-6">
+                <div class="mb-3">
+                    <label>Nombres*:</label>
+                    <div>
+                        <InputText id="Nombres" class="form-control" @bind-Value="@userDTO.nombres" />
+                        <ValidationMessage For="@(() => userDTO.nombres)" />
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label>Apellidos*:</label>
+                    <div>
+                        <InputText id="Apellidos" class="form-control" @bind-Value="@userDTO.apellidos" />
+                        <ValidationMessage For="@(() => userDTO.apellidos)" />
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label>Cédula*:</label>
+                    <div>
+                        <InputText type="number" id="Cedula" class="form-control" @bind-Value="@userDTO.identificacion" />
+                        <ValidationMessage For="@(() => userDTO.identificacion)" />
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label>Correo Electrónico*:</label>
+                    <div>
+                        <InputText id="email" class="form-control" @bind-Value="@userDTO.email" />
+                        <ValidationMessage For="@(() => userDTO.email)" />
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label>Nombre de usuario*:</label>
+                    <div>
+                        <InputText id="userName" class="form-control" @bind-Value="@userDTO.userName" />
+                        <ValidationMessage For="@(() => userDTO.userName)" />
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                @*<div class="mb-3">
+                    <label>Overol:</label>
+                    <div>
+                        <InputText id="overol" class="form-control" @bind-Value="@userDTO.Overol" />
+                        <ValidationMessage For="@(() => userDTO.Overol)" />
+                    </div>
+                </div>*@
+                <div class="mb-3">
+                    <label>Overol:</label>
+                    <div>
+                        <InputText id="overol" class="form-control" @bind-Value="@userDTO.Overol" />
+                        <ValidationMessage For="@(() => userDTO.Overol)" />
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label>Área*:</label>
+                    <select id="area" class="form-select" @bind="@userDTO.areaId">
+                        <option value="0">-- Seleccione un area --</option>
+                        @if (areas is not null)
+                        {
+                            @foreach (var area in areas)
+                            {
+                                <option value="@area.id">@area.nombre</option>
+                            }
+                        }
+                    </select>
+                    <ValidationMessage For="@(() => userDTO.areaId)" />
+                </div>
+                <div class="mb-3">
+                    <label>Rol*:</label>
+                    <select id="rol" class="form-select" @bind="@userDTO.rol">
+                        <option value="0">-- Seleccione un rol --</option>
+                        @if (roles is not null)
+                        {
+                            @foreach (var rol in rolesComparacion)
+                            {
+                                <option value="@rol.Codigo">@rol.Nombre</option>
+
+                            }
+                        }
+                    </select>
+                    <ValidationMessage For="@(() => userDTO.rol)" />
+                </div>
+
+                <div class="mb-3">
+                    <label>Contraseña*:</label>
+                    <div>
+                        <InputText id="password" type="password" class="form-control" @bind-Value="@userDTO.Password" />
+                        <ValidationMessage For="@(() => userDTO.Password)" />
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label>Confirmar contraseña*:</label>
+                    <div>
+                        <InputText id="PasswordConfirm" type="password" class="form-control" @bind-Value="@userDTO.PasswordConfirm" />
+                        <ValidationMessage For="@(() => userDTO.PasswordConfirm)" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button id="atras" class="btn btn-danger" onclick="@Atras">Atrás</button>
+        <button id="registrar" class="btn btn-primary" type="submit">Registrar</button>
+
+    </EditForm>
+
+
+}
+
+
+@code {
+
+    UserDTO userDTO = new();
+    UserTempDTO userTempDTO = new();
+    UserMarquesaDTO userMarquesa = new();
+    private List<tblRol>? roles;
+    private List<tblRol>? rolesComparacion;
+    private List<RolesDTO>? rolesAuthenti;
+    private List<AreasDTO> areas;
+
+
+    UserDTO userNameRepeat = new();
+
+    protected async override Task OnInitializedAsync()
+    {
+        await LoadRolesAsync();
+        await LoadAreaIdAsync();
+
+    }
+    private async Task LoadRolesAsync()
+    {
+        var Cadena = Configuracion.GetSection("VariableApi")["AuthenticationApi"];
+        var responseHttp = await repository.Get<List<tblRol>>("/api/roles/GetRoles");
+        if (responseHttp.Error)
+        {
+            var message = await responseHttp.GetErrorMessageAsync();
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+
+        roles = responseHttp.Response!;
+        roles.RemoveAll(item => item.Estado == false);
+
+        var responseHttpAuthentication = await repository.Get<List<RolesDTO>>($"{Cadena}/api/Accounts/Roles");
+        if (responseHttpAuthentication.Error)
+        {
+            string? message = await responseHttpAuthentication.GetErrorMessageAsync();
+            bool comienzaConCorcheteAbierto = message.StartsWith("[");
+            bool terminaConCorcheteCerrado = message.EndsWith("]");
+
+            if (comienzaConCorcheteAbierto && terminaConCorcheteCerrado)
+            {
+                List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                message = string.Join("\n", Errors.Select(t => t.description));
+            }
+            else
+            {
+                message = "[" + message + "]";
+                List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                message = string.Join("\n", Errors.Select(t => t.description));
+            }
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+
+        rolesAuthenti = responseHttpAuthentication.Response!;
+        
+
+        rolesComparacion = roles.Where(item1 => rolesAuthenti.Any(item2 => item1.Codigo == item2.id)).ToList();
+        rolesComparacion.RemoveAll(item => item.Estado == false);
+
+
+    }
+
+    private async Task LoadAreaIdAsync()
+    {
+        var Cadena = Configuracion.GetSection("VariableApi")["AuthenticationApi"];
+        var responseHttp = await repository.Get<List<AreasDTO>>($"{Cadena}/api/Areas/GetAll");
+        if (responseHttp.Error)
+        {
+            string? message = await responseHttp.GetErrorMessageAsync();
+            bool comienzaConCorcheteAbierto = message.StartsWith("[");
+            bool terminaConCorcheteCerrado = message.EndsWith("]");
+
+            if (comienzaConCorcheteAbierto && terminaConCorcheteCerrado)
+            {
+                List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                message = string.Join("\n", Errors.Select(t => t.description));
+            }
+            else
+            {
+                message = "[" + message + "]";
+                List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                message = string.Join("\n", Errors.Select(t => t.description));
+            }
+            if (message.Contains("Ha ocurrido un error inesperado"))
+            {
+                var Message = "La sesión ha expirado o la conexión ha fallado";
+                await sweetAlertService.FireAsync("Fallo de sesión", Message, SweetAlertIcon.Error);
+                await loginService.LogoutAsync();
+                navigationManager.NavigateTo("/Login");
+            }
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+
+        areas = responseHttp.Response!;
+    }
+
+    [AllowAnonymous]
+    private async Task CreateUserAsync()
+    {
+        bool EspacioInicialNombre = char.IsWhiteSpace(userDTO.nombres[0]);
+        bool EspacioFinalNombre = char.IsWhiteSpace(userDTO.nombres[userDTO.nombres.Length - 1]);
+
+        if (EspacioInicialNombre || EspacioFinalNombre)
+        {
+            await sweetAlertService.FireAsync("Error", "Los nombres no pueden tener espacios en blanco al inicio o al final", SweetAlertIcon.Error);
+            return;
+        }
+
+        bool EspacioInicialApellido = char.IsWhiteSpace(userDTO.apellidos[0]);
+        bool EspacioFinalApellido = char.IsWhiteSpace(userDTO.apellidos[userDTO.apellidos.Length - 1]);
+
+        if (EspacioInicialApellido || EspacioFinalApellido)
+        {
+            await sweetAlertService.FireAsync("Error", "Los apellidos no pueden tener espacios en blanco al inicio o al final", SweetAlertIcon.Error);
+            return;
+        }
+        if (!string.IsNullOrEmpty(userDTO.Overol))
+        {
+            bool EspacioInicialOverol = char.IsWhiteSpace(userDTO.Overol[0]);
+            bool EspacioFinalOverol = char.IsWhiteSpace(userDTO.Overol[userDTO.Overol.Length - 1]);
+
+            if (EspacioInicialOverol || EspacioFinalOverol)
+            {
+                await sweetAlertService.FireAsync("Error", "El overol no puede tener espacios en blanco al inicio o al final", SweetAlertIcon.Error);
+                return;
+            }
+        }
+
+
+        var Cadena = Configuracion.GetSection("VariableApi")["AuthenticationApi"];
+        try
+        {
+
+            userDTO.aplicacionId = "026767a2-a87a-4a6a-82ac-9c2619e1343e";
+            var responseHpptUser = await repository.Get<UserDTO>($"{Cadena}/api/Accounts/GetUserName?UserName={userDTO.userName}");
+            if (responseHpptUser.Error)
+            {
+                string? message = await responseHpptUser.GetErrorMessageAsync();
+                bool comienzaConCorcheteAbierto = message.StartsWith("[");
+                bool terminaConCorcheteCerrado = message.EndsWith("]");
+
+                if (comienzaConCorcheteAbierto && terminaConCorcheteCerrado)
+                {
+                    List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                    message = string.Join("\n", Errors.Select(t => t.description));
+                }
+                else
+                {
+                    message = "[" + message + "]";
+                    List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                    message = string.Join("\n", Errors.Select(t => t.description));
+                }
+                if (message.Contains("Ha ocurrido un error inesperado"))
+                {
+                    var Message = "La sesión ha expirado o la conexión ha fallado";
+                    await sweetAlertService.FireAsync("Fallo de sesión", Message, SweetAlertIcon.Error);
+                    await loginService.LogoutAsync();
+                    navigationManager.NavigateTo("/Login");
+                }
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+            var responseHpptUserCedula = await repository.Get<UserDTO>($"{Cadena}/api/Accounts/GetUserName?UserName={userDTO.identificacion}");
+            if (responseHpptUserCedula.Error)
+            {
+                string? message = await responseHpptUserCedula.GetErrorMessageAsync();
+                bool comienzaConCorcheteAbierto = message.StartsWith("[");
+                bool terminaConCorcheteCerrado = message.EndsWith("]");
+
+                if (comienzaConCorcheteAbierto && terminaConCorcheteCerrado)
+                {
+                    List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                    message = string.Join("\n", Errors.Select(t => t.description));
+                }
+                else
+                {
+                    message = "[" + message + "]";
+                    List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                    message = string.Join("\n", Errors.Select(t => t.description));
+                }
+                if (message.Contains("Ha ocurrido un error inesperado"))
+                {
+                    var Message = "La sesión ha expirado o la conexión ha fallado";
+                    await sweetAlertService.FireAsync("Fallo de sesión", Message, SweetAlertIcon.Error);
+                    await loginService.LogoutAsync();
+                    navigationManager.NavigateTo("/Login");
+                }
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+            HttpResponseWrapper<tblUsuario> responseHpptUserMarquesaValidation;
+            HttpResponseWrapper<tblUsuario> responseHpptUserMarquesaValidationCedula;
+
+            if (responseHpptUser.Response == null)
+            {
+                responseHpptUserMarquesaValidation = await repository.Get<tblUsuario>($"/api/usuarios/GetUser?Id={0}");
+            }
+            else
+            {
+                responseHpptUserMarquesaValidation = await repository.Get<tblUsuario>($"/api/usuarios/GetUser?Id={responseHpptUser.Response.id}");
+            }
+
+
+
+            if (responseHpptUserCedula.Response == null)
+            {
+                responseHpptUserMarquesaValidationCedula = await repository.Get<tblUsuario>($"/api/usuarios/GetUser?Id={0}");
+
+            }
+            else
+            {
+                responseHpptUserMarquesaValidationCedula = await repository.Get<tblUsuario>($"/api/usuarios/GetUser?Id={responseHpptUserCedula.Response.id}");
+            }
+
+
+            if (!responseHpptUser.Error && !responseHpptUserMarquesaValidation.Error)
+            {
+                var message = "Este Usuario ya se encuentra registrado";
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+            if (!responseHpptUserCedula.Error && !responseHpptUserMarquesaValidationCedula.Error)
+            {
+                var message = "Esta Cedula ya se encuentra registrada";
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+            if (!responseHpptUser.Error)
+            {
+                if (responseHpptUser.Response.aplicacions == null || !responseHpptUser.Response.aplicacions.Any(t => t.guid == userDTO.aplicacionId))
+                {
+                    var resultado = await sweetAlertService.FireAsync(new SweetAlertOptions
+                        {
+                            Title = "Confirmación de Usuario",
+                            Html = $"Ya existe un usuario registrado con este Nombre de Usuario y con la siguiente información: \n" +
+                                                             $" <br>Nombres : {responseHpptUser.Response.nombres} <br>" +
+                                                               $"Apellidos : {responseHpptUser.Response.apellidos} <br>" +
+                                                               $"Cédula : {responseHpptUser.Response.identificacion} <br>" +
+                                                               $"Correo : {responseHpptUser.Response.email}  <br>" +
+                                                               $"Nombre de usuario : {responseHpptUser.Response.userName} <br>",
+                            Icon = SweetAlertIcon.Warning,
+                            ShowCancelButton = true,
+                            ConfirmButtonText = "¿Continuar el registro con este usuario?",
+                            CancelButtonText = "Volver al fomulario de registro"
+
+                        });
+
+                    var confirmado = !string.IsNullOrEmpty(resultado.Value);
+
+                    if (confirmado)
+                    {
+                        List<IdApiRegister> IdApi = new();
+                        IdApiRegister IdApiUser = new();
+                        IdApiUser.aplicacionId = "026767a2-a87a-4a6a-82ac-9c2619e1343e";
+                        IdApiUser.userId = responseHpptUser.Response.id;
+
+                        IdApi.Add(IdApiUser);
+
+                        var responseHttpIdApi = await repository.Post($"{Cadena}/api/Accounts/AddApplicationUser", IdApi);
+                        if (responseHttpIdApi.Error)
+                        {
+                            string? message = await responseHttpIdApi.GetErrorMessageAsync();
+                            bool comienzaConCorcheteAbierto = message.StartsWith("[");
+                            bool terminaConCorcheteCerrado = message.EndsWith("]");
+
+                            if (comienzaConCorcheteAbierto && terminaConCorcheteCerrado)
+                            {
+                                List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                                message = string.Join("\n", Errors.Select(t => t.description));
+                            }
+                            else
+                            {
+                                message = "[" + message + "]";
+                                List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                                message = string.Join("\n", Errors.Select(t => t.description));
+                            }
+                            if (message.Contains("Ha ocurrido un error inesperado"))
+                            {
+                                var Message = "La sesión ha expirado o la conexión ha fallado";
+                                await sweetAlertService.FireAsync("Fallo de sesión", Message, SweetAlertIcon.Error);
+                                await loginService.LogoutAsync();
+                                navigationManager.NavigateTo("/Login");
+                            }
+                            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        return;
+                    }
+
+
+                }
+                var responseHpptUserMarquesa = await repository.Get<UserDTO>($"/api/usuarios/GetUser?Id={responseHpptUser.Response.id}");
+                if (responseHpptUserMarquesa.Error)
+                {
+
+                    userMarquesa.FechaCreacion = DateTime.Now;
+                    userMarquesa.Estado = true;
+                    userMarquesa.Id_Rol = roles.FirstOrDefault(T => T.Codigo == userDTO.rol).Id;
+                    userMarquesa.Codigo = responseHpptUser.Response.id;
+                    userMarquesa.Overol = userDTO.Overol;
+                    userMarquesa.Sincronizar = true;
+
+                    var responseHttpMarquesaApi = await repository.Post("/api/usuarios", userMarquesa);
+                    if (responseHttpMarquesaApi.Error)
+                    {
+                        string? message3 = await responseHttpMarquesaApi.GetErrorMessageAsync();
+                        bool comienzaConCorcheteAbierto3 = message3.StartsWith("[");
+                        bool terminaConCorcheteCerrado3 = message3.EndsWith("]");
+                        if (comienzaConCorcheteAbierto3 && terminaConCorcheteCerrado3)
+                        {
+                            List<ErrorDTO> Errors3 = JsonSerializer.Deserialize<List<ErrorDTO>>(message3);
+                            message3 = string.Join("\n", Errors3.Select(t => t.description));
+                        }
+                        else
+                        {
+                            message3 = "[" + message3 + "]";
+                            List<ErrorDTO> Errors3 = JsonSerializer.Deserialize<List<ErrorDTO>>(message3);
+                            message3 = string.Join("\n", Errors3.Select(t => t.description));
+                        }
+                        await sweetAlertService.FireAsync("Error", message3, SweetAlertIcon.Error);
+                        return;
+
+
+                    }
+                }
+                navigationManager.NavigateTo("/Usuarios");
+                await sweetAlertService.FireAsync("Proceso terminado", $"Acceso otorgado al usuario {responseHpptUser.Response.userName}, recuerde que la contraseña para iniciar sesión es la que ya tenía asociada en la aplicación de autenticación.", SweetAlertIcon.Success);
+                return;
+            }
+            else
+            {
+                userDTO.Estado = true;
+                userDTO.state = true;
+                userDTO.Sincronizar = true;
+                var responseHttpAuthentication = await repository.Post<UserDTO, UserApiDTO>($"{Cadena}/api/accounts/CreateUser", userDTO);
+                if (responseHttpAuthentication.Error)
+                {
+
+                    string? message = await responseHttpAuthentication.GetErrorMessageAsync();
+                    bool comienzaConCorcheteAbierto = message.StartsWith("[");
+                    bool terminaConCorcheteCerrado = message.EndsWith("]");
+
+                    if (comienzaConCorcheteAbierto && terminaConCorcheteCerrado)
+                    {
+                        List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                        message = string.Join("\n", Errors.Select(t => t.description));
+                    }
+                    else
+                    {
+                        message = "[" + message + "]";
+                        List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                        message = string.Join("\n", Errors.Select(t => t.description));
+                    }
+                    if (message.Contains("no debe contener espacios"))
+                    {
+                        message = "El campo Nombre de usuario, no debe contener espacios";
+                    }
+                    if (message.Contains("El número de Identificacion"))
+                    {
+
+                        var responseHpptUserNew = await repository.Get<UserDTO>($"{Cadena}/api/Accounts/GetUserName?UserName={userDTO.identificacion}");
+                        if (responseHpptUserNew.Error)
+                        {
+                            string? message2 = await responseHpptUserNew.GetErrorMessageAsync();
+                            bool comienzaConCorcheteAbierto2 = message2.StartsWith("[");
+                            bool terminaConCorcheteCerrado2 = message2.EndsWith("]");
+
+                            if (comienzaConCorcheteAbierto2 && terminaConCorcheteCerrado2)
+                            {
+                                List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message2);
+                                message2 = string.Join("\n", Errors.Select(t => t.description));
+                            }
+                            else
+                            {
+                                message2 = "[" + message2 + "]";
+                                List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message2);
+                                message2 = string.Join("\n", Errors.Select(t => t.description));
+                            }
+
+
+                            await sweetAlertService.FireAsync("Error", message2, SweetAlertIcon.Error);
+                            return;
+                        }
+                        var resultado2 = await sweetAlertService.FireAsync(new SweetAlertOptions
+                            {
+                                Title = "Confirmación de Usuario",
+                                Html = $"Ya existe un usuario registrado con esta cedula y con la siguiente información <br>" +
+                                                           $" <br> Nombres : {responseHpptUserNew.Response.nombres} <br>" +
+                                                           $"Apellidos : {responseHpptUserNew.Response.apellidos} <br>" +
+                                                           $"Cédula : {responseHpptUserNew.Response.identificacion} <br>" +
+                                                           $"Correo : {responseHpptUserNew.Response.email} <br>" +
+                                                           $"Nombre de usuario : {responseHpptUserNew.Response.userName} <br>",
+                                Icon = SweetAlertIcon.Warning,
+                                ShowCancelButton = true,
+                                ConfirmButtonText = "¿Continuar el registro con este usuario?",
+                                CancelButtonText = "Volver al fomulario de registro"
+
+                            });
+
+                        var confirmado2 = !string.IsNullOrEmpty(resultado2.Value);
+
+                        if (confirmado2)
+                        {
+                            List<IdApiRegister> IdApi = new();
+                            IdApiRegister IdApiUser = new();
+                            IdApiUser.aplicacionId = "026767a2-a87a-4a6a-82ac-9c2619e1343e";
+                            IdApiUser.userId = responseHpptUserNew.Response.id;
+
+                            IdApi.Add(IdApiUser);
+
+                            var responseHttpIdApi = await repository.Post($"{Cadena}/api/Accounts/AddApplicationUser", IdApi);
+                            if (responseHttpIdApi.Error)
+                            {
+                                string? message3 = await responseHpptUserNew.GetErrorMessageAsync();
+                                bool comienzaConCorcheteAbierto3 = message3.StartsWith("[");
+                                bool terminaConCorcheteCerrado3 = message3.EndsWith("]");
+
+                                if (comienzaConCorcheteAbierto3 && terminaConCorcheteCerrado3)
+                                {
+                                    List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message3);
+                                    message3 = string.Join("\n", Errors.Select(t => t.description));
+                                }
+                                else
+                                {
+                                    message3 = "[" + message3 + "]";
+                                    List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message3);
+                                    message3 = string.Join("\n", Errors.Select(t => t.description));
+                                }
+
+
+                                await sweetAlertService.FireAsync("Error", message3, SweetAlertIcon.Error);
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            return;
+                        }
+                        userMarquesa.FechaCreacion = DateTime.Now;
+                        userMarquesa.Estado = true;
+                        userMarquesa.Id_Rol = roles.FirstOrDefault(T => T.Codigo == userDTO.rol).Id;
+                        userMarquesa.Codigo = responseHpptUserNew.Response.id;
+                        userMarquesa.Overol = userDTO.Overol;
+                        userMarquesa.Sincronizar = true;
+
+                        var responseHttpMarquesaApiNew = await repository.Post("/api/usuarios", userMarquesa);
+                        if (responseHttpMarquesaApiNew.Error)
+                        {
+                            string? message3 = await responseHttpMarquesaApiNew.GetErrorMessageAsync();
+                            bool comienzaConCorcheteAbierto3 = message3.StartsWith("[");
+                            bool terminaConCorcheteCerrado3 = message3.EndsWith("]");
+                            if (comienzaConCorcheteAbierto3 && terminaConCorcheteCerrado3)
+                            {
+                                List<ErrorDTO> Errors3 = JsonSerializer.Deserialize<List<ErrorDTO>>(message3);
+                                message3 = string.Join("\n", Errors3.Select(t => t.description));
+                            }
+                            else
+                            {
+                                message3 = "[" + message3 + "]";
+                                List<ErrorDTO> Errors3 = JsonSerializer.Deserialize<List<ErrorDTO>>(message3);
+                                message3 = string.Join("\n", Errors3.Select(t => t.description));
+                            }
+                            await sweetAlertService.FireAsync("Error", message3, SweetAlertIcon.Error);
+                            return;
+                           
+                        }
+                        navigationManager.NavigateTo("/Usuarios");
+                        await sweetAlertService.FireAsync("Proceso terminado", $"Acceso otorgado al usuario {responseHpptUserNew.Response.userName} con cedula {responseHpptUserNew.Response.identificacion}, recuerde que la contraseña para iniciar sesión es la que ya tenía asociada en la aplicación de autenticación.", SweetAlertIcon.Success);
+                        return;
+
+                    }
+                    await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                    return;
+                }
+
+                userMarquesa.FechaCreacion = DateTime.Now;
+                userMarquesa.Estado = true;
+                userMarquesa.Id_Rol = roles.FirstOrDefault(T => T.Codigo == userDTO.rol).Id;
+                userMarquesa.Codigo = responseHttpAuthentication.Response.id;
+                userMarquesa.Overol = userDTO.Overol;
+                userMarquesa.Sincronizar = true;
+
+                var responseHttpMarquesaApi = await repository.Post("/api/usuarios", userMarquesa);
+                if (responseHttpMarquesaApi.Error)
+                {
+                    string? message3 = await responseHttpMarquesaApi.GetErrorMessageAsync();
+                    bool comienzaConCorcheteAbierto3 = message3.StartsWith("[");
+                    bool terminaConCorcheteCerrado3 = message3.EndsWith("]");
+                    if (comienzaConCorcheteAbierto3 && terminaConCorcheteCerrado3)
+                    {
+                        List<ErrorDTO> Errors3 = JsonSerializer.Deserialize<List<ErrorDTO>>(message3);
+                        message3 = string.Join("\n", Errors3.Select(t => t.description));
+                    }
+                    else
+                    {
+                        message3 = "[" + message3 + "]";
+                        List<ErrorDTO> Errors3 = JsonSerializer.Deserialize<List<ErrorDTO>>(message3);
+                        message3 = string.Join("\n", Errors3.Select(t => t.description));
+                    }
+                    await sweetAlertService.FireAsync("Error", message3, SweetAlertIcon.Error);
+                    return;
+                }
+            }
+
+            navigationManager.NavigateTo("/Usuarios");
+            await sweetAlertService.FireAsync("Proceso terminado", "El Usuario fue creado con exito", SweetAlertIcon.Success);
+            return;
+        }
+        catch (Exception ex)
+        {
+            await sweetAlertService.FireAsync("Error", ex.Message, SweetAlertIcon.Error);
+        }
+
+
+    }
+
+    public void Atras()
+    {
+        navigationManager.NavigateTo("Usuarios");
+    }
+
+
+}

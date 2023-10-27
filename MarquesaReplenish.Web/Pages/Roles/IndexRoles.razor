@@ -1,0 +1,332 @@
+﻿@page "/Roles"
+@using Microsoft.AspNetCore.Authorization;
+@inject IConfiguration Configuracion
+@inject IRepository repository
+@inject SweetAlertService sweetAlertService
+@inject NavigationManager navigationManager
+@inject ILoginService loginService
+@attribute [Authorize]
+
+@if (roles is null)
+{
+    <div class="spinner" />
+}
+else
+{
+    <Pagination CurrentPage="currentPage"
+                TotalPages="totalPages"
+                SelectedPage="SelectedPageAsync" />
+    <GenericList MyList="rolesAuthMarque">
+        <body>
+            <div class="card">
+                <div class="card-header">
+                    <span>
+                        <i class="oi oi-list"></i> Roles
+                        <a id="CrearRol" class="btn btn-sm btn-primary float-end" href="/CreateRol"><i class="oi oi-plus"></i> Crear Rol</a>
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2" style="display: flex; flex-wrap:wrap; align-items: center;">
+                        <div>
+                            <input style="width: 400px;" type="text" class="form-control" id="titulo" placeholder="Buscar rol..." @bind-value="Filter" />
+                        </div>
+                        <div class="mx-1">
+                            <button type="button" class="btn btn-outline-primary" @onclick="ApplyFilterAsync"><i class="oi oi-layers" /> Filtrar</button>
+                            <button type="button" class="btn btn-outline-danger" @onclick="CleanFilterAsync"><i class="oi oi-ban" /> Limpiar</button>
+                        </div>
+                    </div>
+
+
+                    <div style="width: 1036px; height: 290px; overflow-x: scroll; overflow-y: scroll;">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th style="font-size: 15px;">Nombre</th>
+                                <th style="font-size: 15px;">Estado</th>
+                                @*<th style="font-size: 15px;">Nombre normalizado</th>*@
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (rolesAuthMarque != null)
+                                {
+                                    @foreach (var rol in rolesAuthMarque)
+                                    {
+                                        <tr>
+                                            <td style="font-size: 12px;">
+                                                @rol.Nombre
+                                            </td>                                           
+                                            <td style="font-size: 12px;">
+                                                @if (rol.Estado == true)
+                                                {
+                                                    <p>Activo</p>
+                                                }
+                                                else
+                                                {
+                                                    <p>Inactivo</p>
+
+                                                }
+                                            </td>
+                                            <td style="font-size: 12px;width: 10px;">
+                                                @if (rol.Estado == true)
+                                                {
+                                                    <a href="/EditRol/@rol.Id" class="btn btn-dark"><i class="oi oi-pencil" /></a>
+                                                }
+                                            </td>
+
+                                            <td style="font-size: 12px;width: 10px;">
+                                                @if (rol.Estado != true)
+                                                {
+                                                    <button class="btn btn-success" @onclick=@(() => State(rol.Id))><i class="fa-sharp fa-solid fa-check"></i></button>
+                                                }
+                                                else
+                                                {
+                                                    <button class="btn btn-danger" @onclick=@(() => State(rol.Id))><i class="fa-solid fa-x"></i></button>
+                                                }
+
+                                            </td>
+                                        </tr>
+                                    }
+
+                                }
+                            
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            </div>
+        </body>
+    </GenericList>
+}
+
+@code {
+    public List<RolesDTO>? roles { get; set; }
+    public List<tblRol>? RolesMarquesa { get; set; }
+    public List<tblRol>? rolesAuthMarque { get; set; }
+    private int currentPage = 1;
+    private int totalPages;
+    private int CantObjet = 10;
+    private bool toFeach = false;
+
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string Page { get; set; } = string.Empty;
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string Filter { get; set; } = string.Empty;
+
+    protected async override Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+
+    private async Task LoadAsync(int page = 1)
+    {
+        var Cadena = Configuracion.GetSection("VariableApi")["AuthenticationApi"];
+        if (!string.IsNullOrWhiteSpace(Page))
+        {
+            page = Convert.ToInt32(Page);
+        }
+
+        string url1 = string.Empty;
+        string url2 = string.Empty;
+
+        if (string.IsNullOrEmpty(Filter))
+        {
+            url1 = $"{Cadena}/api/Accounts/Roles?Page={page}&RecordsNumber={CantObjet}";
+            url2 = $"{Cadena}/api/Accounts/totalPagesRoles?RecordsNumber={CantObjet}";
+        }
+        else
+        {
+            url1 = $"{Cadena}/api/Accounts/Roles?Page={page}&RecordsNumber={CantObjet}&filter={Filter}";
+            url2 = $"{Cadena}/api/Accounts/totalPagesRoles?RecordsNumber={CantObjet}&filter={Filter}";
+        }
+
+        try
+        {
+            var responseHppt = await repository.Get<List<RolesDTO>>(url1);
+            if (responseHppt.Error)
+            {
+                string? message = await responseHppt.GetErrorMessageAsync();
+                bool comienzaConCorcheteAbierto = message.StartsWith("[");
+                bool terminaConCorcheteCerrado = message.EndsWith("]");
+
+                if (comienzaConCorcheteAbierto && terminaConCorcheteCerrado)
+                {
+                    List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                    message = string.Join("\n", Errors.Select(t => t.description));
+                }
+                else
+                {
+                    message = "[" + message + "]";
+                    List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                    message = string.Join("\n", Errors.Select(t => t.description));
+                }
+
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+            var responseHppt2 = await repository.Get<int>(url2);
+            if (responseHppt2.Error)
+            {
+                string? message = await responseHppt2.GetErrorMessageAsync();
+                bool comienzaConCorcheteAbierto = message.StartsWith("[");
+                bool terminaConCorcheteCerrado = message.EndsWith("]");
+
+                if (comienzaConCorcheteAbierto && terminaConCorcheteCerrado)
+                {
+                    List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                    message = string.Join("\n", Errors.Select(t => t.description));
+                }
+                else
+                {
+                    message = "[" + message + "]";
+                    List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                    message = string.Join("\n", Errors.Select(t => t.description));
+                }
+
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+
+            totalPages = responseHppt2.Response!;
+            roles = responseHppt.Response!;
+
+            if (responseHppt.HttpResponseMessage.StatusCode.ToString() == "Unauthorized" || responseHppt2.HttpResponseMessage.StatusCode.ToString() == "Unauthorized")
+            {
+                var Message = "La sesión ha expirado";
+                await sweetAlertService.FireAsync("Fallo de sesión", Message, SweetAlertIcon.Error);
+                await loginService.LogoutAsync();
+                navigationManager.NavigateTo("/Login");
+                toFeach = true;
+                return;
+            }    
+            
+            var responseHttpMarquesa = await repository.Get<List<tblRol>>("/api/roles/GetRoles");
+            if (responseHttpMarquesa.Error)
+            {
+                var message = await responseHttpMarquesa.GetErrorMessageAsync();
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+            RolesMarquesa = responseHttpMarquesa.Response;
+
+            rolesAuthMarque = RolesMarquesa.Where(item2 => roles.Any(item1 => item1.id == item2.Codigo)).ToList();
+
+            //totalPages = rolesAuthMarque.Count;
+            int redondeo = (int)Math.Ceiling(RolesMarquesa.Count / 10.0);
+            totalPages = redondeo;
+        }
+        catch (Exception ex)
+        {
+            if (toFeach == false)
+            {
+
+                if (ex.Message.Contains("Value cannot be null. (Parameter 'source')"))
+                {
+                    var Message = "La sesión ha expirado, Inicia sesión de nuevo, por favor";
+                    await sweetAlertService.FireAsync("Sesión expirada", Message, SweetAlertIcon.Error);
+                    await loginService.LogoutAsync();
+                    navigationManager.NavigateTo("/Login");
+                    return;
+                }
+                if (ex.Message.Contains("TypeError: Failed to fetch"))
+                {
+                    var Message = "La sesión ha expirado";
+                    await sweetAlertService.FireAsync("Fallo de sesión", Message, SweetAlertIcon.Error);
+                    await loginService.LogoutAsync();
+                    navigationManager.NavigateTo("/Login");
+                    return;
+                }
+                if (ex.Message.Contains("'T' is an invalid start of a value. Path: $[0] | LineNumber: 0 | BytePositionInLine: 1."))
+                {
+                    var Message = "La sesión ha expirado";
+                    await sweetAlertService.FireAsync("Fallo de sesión", Message, SweetAlertIcon.Error);
+                    await loginService.LogoutAsync();
+                    navigationManager.NavigateTo("/Login");
+                    return;
+                }
+                else
+                {
+                    await sweetAlertService.FireAsync("Error", ex.Message, SweetAlertIcon.Error);
+                }
+
+            }
+
+
+        }
+    }
+
+
+    private async Task SelectedPageAsync(int page)
+    {
+        currentPage = page;
+        await LoadAsync(page);
+    }
+
+    
+
+    private async Task CleanFilterAsync()
+    {
+        Filter = string.Empty;
+        await ApplyFilterAsync();
+    }
+
+    private async Task ApplyFilterAsync()
+    {
+        int page = 1;
+        await LoadAsync();
+        await SelectedPageAsync(page);
+    }
+
+    private async Task State(int idRol)
+    {
+        try
+        {
+            var result = await sweetAlertService.FireAsync(new SweetAlertOptions
+                {
+                   Title = "Confirmación",
+                    Text = "¿Estás seguro de que quieres cambiar el estado de actividad del Rol?",
+                    Icon = SweetAlertIcon.Question,
+                    ShowCancelButton = true
+                });
+
+            var confirm = string.IsNullOrEmpty(result.Value);
+
+            if (confirm)
+            {
+                return;
+            }
+
+            var responseHTTP = await repository.Post($"/api/roles/UpdateRolEstado?idRol={idRol}", idRol);
+
+            if (responseHTTP.Error)
+            {
+                if (responseHTTP.HttpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    navigationManager.NavigateTo("/Roles");
+                }
+                else
+                {
+                    var mensajeError = await responseHTTP.GetErrorMessageAsync();
+                    await sweetAlertService.FireAsync("Error", mensajeError, SweetAlertIcon.Error);
+                }
+            }
+            else
+            {
+                await LoadAsync(currentPage);
+
+
+            }
+
+        }
+        catch (Exception ex)
+        {
+            // Manejar la excepción, por ejemplo, registrarla o mostrar un mensaje de error
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+        
+    }
+}

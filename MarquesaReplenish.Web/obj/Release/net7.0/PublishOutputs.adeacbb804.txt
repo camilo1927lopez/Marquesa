@@ -1,0 +1,1 @@
+D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.Web\obj\Release\net7.0\browser-wasm\PubTmp\Out\web.config

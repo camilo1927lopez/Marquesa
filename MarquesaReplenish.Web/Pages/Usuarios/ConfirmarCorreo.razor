@@ -1,0 +1,59 @@
+﻿@page "/api/Accounts/ConfirmEmail"
+@inject IRepository repository
+@inject SweetAlertService sweetAlertService
+@inject NavigationManager navigationManager
+@inject ILoginService loginService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<style>
+    .btn {
+        background: #7fc7e9;
+        color: white;
+        padding-top: 7px;
+        margin-top: 30px;
+        /* Añadimos una transición para hacer el movimiento más suave */
+        transition: transform 0.3s ease;
+    }
+
+        /* Aplicamos la transformación cuando se haga hover en el botón */
+        .btn:hover {
+            transform: translateY(-3px); /* Mueve el botón 5px hacia arriba */
+        }
+
+</style>
+
+<div style="display:flex;flex-direction:column;align-items:center;padding-left:59vh;">
+
+    <img style="width: 440px;height: 321px;border-radius: 190px;" src="/ConfirmarCorreo.png" alt="Imagen">
+    <h1 style="width: 530px;margin-top: 10px;">Correo Confirmado con exito</h1>
+
+    <h4 style="width: 530px;padding-left: 20px;">Ya es posible iniciar sesion con este usuario</h4>
+    <button  style="background: #7fc7e9; color: white;padding-top: 7px;margin-top: 30px;" onclick="@InciarSesion" class="btn boton">
+        Iniciar Sesion
+    </button>
+
+</div>
+
+
+@code {
+
+    private void InciarSesion()
+    {
+        navigationManager.NavigateTo("/Login");
+    }
+    protected async override Task OnInitializedAsync()
+    {
+        await LoadAsync();
+
+    }
+
+    private async Task LoadAsync()
+    {
+
+        var uri = new Uri(NavigationManager.Uri);
+        
+    }
+
+
+}

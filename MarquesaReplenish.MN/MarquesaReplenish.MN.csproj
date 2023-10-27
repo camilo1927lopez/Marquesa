@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{A13C5CDE-526A-474C-AB1E-0F4E503197C5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>MarquesaReplenish.MN</RootNamespace>
+    <AssemblyName>MarquesaReplenish.MN</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="BDManager">
+      <HintPath>..\..\..\..\Framework\Librerias Cadena\BDManager.dll</HintPath>
+    </Reference>
+    <Reference Include="Functions">
+      <HintPath>..\..\..\..\Framework\Librerias Cadena\Functions.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Helpers\AgruparXOrdenColumnas.cs" />
+    <Compile Include="Helpers\CalculoContenedores.cs" />
+    <Compile Include="Helpers\CargarArchivo.cs" />
+    <Compile Include="Helpers\Ciclos.cs" />
+    <Compile Include="Helpers\GenerarArchivo.cs" />
+    <Compile Include="Manager\TblAuditoriaManager.cs" />
+    <Compile Include="Manager\TblCargueArchivoManager.cs" />
+    <Compile Include="Manager\TblClienteCargueArchivoManager.cs" />
+    <Compile Include="Manager\TblClienteManager.cs" />
+    <Compile Include="Manager\TblConfiguracionRepuestoManager.cs" />
+    <Compile Include="Manager\TblDescripcionRepuestoManager.cs" />
+    <Compile Include="Manager\TblDetalleRepuestoManager.cs" />
+    <Compile Include="Manager\TblDetalleRolPermisosManager.cs" />
+    <Compile Include="Manager\TblEstadoManager.cs" />
+    <Compile Include="Manager\TblExaminandoManager.cs" />
+    <Compile Include="Manager\TblFormatoSalidaManager.cs" />
+    <Compile Include="Manager\TblImpresoraManager.cs" />
+    <Compile Include="Manager\TblMaquinaManager.cs" />
+    <Compile Include="Manager\TblNovedadManager.cs" />
+    <Compile Include="Manager\TblParteCicloManager.cs" />
+    <Compile Include="Manager\TblPermisosManager.cs" />
+    <Compile Include="Manager\TblRepuestoManager.cs" />
+    <Compile Include="Manager\TblRolManager.cs" />
+    <Compile Include="Manager\TblTipoImpresionManager.cs" />
+    <Compile Include="Manager\TblUsuarioManager.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MarquesaReplenish.PD\MarquesaReplenish.PD.csproj">
+      <Project>{CAF739F6-6C52-489F-9EC9-7B1E7AD7B100}</Project>
+      <Name>MarquesaReplenish.PD</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

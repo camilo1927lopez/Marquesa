@@ -1,0 +1,14 @@
+D:\cristian.lopezp\Documentos\WebMarquesa\MarquesaReplenish.Manager.dll
+D:\cristian.lopezp\Documentos\WebMarquesa\MarquesaReplenish.Manager.deps.json
+D:\cristian.lopezp\Documentos\WebMarquesa\MarquesaReplenish.Manager.pdb
+D:\cristian.lopezp\Documentos\WebMarquesa\Microsoft.AspNetCore.Cryptography.Internal.dll
+D:\cristian.lopezp\Documentos\WebMarquesa\Microsoft.AspNetCore.Cryptography.KeyDerivation.dll
+D:\cristian.lopezp\Documentos\WebMarquesa\Microsoft.Extensions.Caching.Abstractions.dll
+D:\cristian.lopezp\Documentos\WebMarquesa\Microsoft.Extensions.DependencyInjection.dll
+D:\cristian.lopezp\Documentos\WebMarquesa\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+D:\cristian.lopezp\Documentos\WebMarquesa\Microsoft.Extensions.Identity.Core.dll
+D:\cristian.lopezp\Documentos\WebMarquesa\Microsoft.Extensions.Identity.Stores.dll
+D:\cristian.lopezp\Documentos\WebMarquesa\Microsoft.Extensions.Logging.dll
+D:\cristian.lopezp\Documentos\WebMarquesa\Microsoft.Extensions.Logging.Abstractions.dll
+D:\cristian.lopezp\Documentos\WebMarquesa\Microsoft.Extensions.Options.dll
+D:\cristian.lopezp\Documentos\WebMarquesa\Microsoft.Extensions.Primitives.dll

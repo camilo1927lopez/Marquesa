@@ -1,0 +1,427 @@
+﻿@page "/CreateRol"
+@using Microsoft.AspNetCore.Authorization;
+@using Microsoft.AspNetCore.Identity;
+@inject IConfiguration Configuracion
+@inject IRepository repository
+@inject SweetAlertService sweetAlertService
+@inject NavigationManager navigationManager
+@inject ILoginService loginService
+@attribute [Authorize]
+
+@if (Permisos is null)
+{
+    <div class="spinner" />
+}
+else
+{
+
+    <div style="
+    overflow-x: scroll;
+    overflow-y: scroll;
+    width: 1080px;
+    height: 567px;">
+
+        <EditForm Model="RolesDTO" OnValidSubmit="CreateRolAsync" style="padding-left: 10px; padding-bottom: 30px;">
+            <DataAnnotationsValidator />
+            <h3>Crear Rol</h3>
+            <h5>Campo obligatorio *</h5>
+
+            <div class="row">
+                <div class="col-6">
+                    <div class="mb-3">
+                        <label style="margin-bottom: 10px;">Nombre*:</label>
+                        <div id="nombreRol" style="width: 260px;">
+                            <InputText class="form-control" @bind-Value="@RolesDTO.roleName" />
+                            <ValidationMessage For="@(() => RolesDTO.roleName)" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="row" style="display: flex;flex-flow: row;">
+                <div style="width: 588px;overflow-x: scroll;overflow-y: scroll;height: 270px; height: 320px; margin-bottom: 20px;">
+                    <h3>Módulos Disponibles</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Titulo Módulo</th>
+                                <th>Nombre del Módulo</th>
+                                <th>Aplicación</th>
+
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var elemento in Permisos)
+                            {
+                                <tr>
+                                    <td>@elemento.TituloFormulario</td>
+                                    <td>@elemento.NombreFormulario</td>
+                                    <td>@elemento.Aplicacion</td>
+                                    <td>
+                                        @if (elemento.Seleccionado == false)
+                                        {
+                                            <button id="AgregarPermiso" class="btn btn-primary" @onclick=@(() => ToggleSeleccion(elemento))>+</button>
+                                        }
+                                        else
+                                        {
+                                            <button id="EliminarPermiso" class="btn btn-danger" @onclick=@(() => ToggleSeleccion(elemento))>-</button>
+                                        }
+
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="width: 450px;overflow-x: scroll;overflow-y: scroll;height: 320px;">
+
+                    @if (PermisosDispo != null)
+                    {
+                        <h3>Módulos Seleccionados</h3>
+                        <ul>
+                            @foreach (var elemento in PermisosDispo)
+                            {
+                                <li>@elemento.TituloFormulario</li>
+                            }
+                        </ul>
+                    }
+
+                </div>
+            </div>
+
+            <div class="row" style="display: flex;flex-flow: row;">
+                <div style="width: 588px;overflow-x: scroll;overflow-y: scroll;height: 270px; height: 320px; margin-bottom: 20px;">
+                    <h3>Clientes Disponibles</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Nombre Cliente</th>
+                                <th>NIT</th>
+                                <th>Estado</th>
+
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var elemento2 in Clientes)
+                            {
+                                <tr>
+                                    <td>@elemento2.Nombre</td>
+                                    <td>@elemento2.Nit</td>
+                                    @if (@elemento2.Estado == true)
+                                    {
+                                        <td>Activo</td>
+                                    }
+                                    else
+                                    {
+                                        <td>Inactivo</td>
+                                    }
+                                    <td>
+                                        @if (elemento2.Seleccionado == false)
+                                        {
+                                            <button id="AgregarCliente" class="btn btn-primary" @onclick=@(() => ToggleSeleccionCliente(elemento2))>+</button>
+                                        }else
+                                        {
+                                            <button id="EliminarCliente" class="btn btn-danger" @onclick=@(() => ToggleSeleccionCliente(elemento2))>-</button>
+                                        }
+                                        
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="width: 450px;overflow-x: scroll;overflow-y: scroll;height: 320px;">
+
+                    @if (ClientesDispo != null)
+                    {
+                        <h3>Clientes Seleccionados</h3>
+                        <ul>
+                            @foreach (var elemento in ClientesDispo)
+                            {
+                                <li>@elemento.Nombre</li>
+                            }
+                        </ul>
+                    }
+
+                </div>
+            </div>
+
+            <button id="Atras" class="btn btn-danger" onclick="@Atras">Atrás</button>
+            <button id="Registrar" class="btn btn-primary" type="submit">Registrar</button>
+
+
+
+        </EditForm>
+    </div>
+
+}
+
+
+@code {
+
+
+    createRolDTO RolesDTO = new();
+    tblRol RolMarquesa = new();
+    tblRol RolConsulta = new();
+    public List<tblPermisos>? Permisos { get; set; }
+    public List<tblPermisos>? PermisosDispo { get; set; } = new();
+    public List<tblTipo>? ListaTipoApi = new();
+
+    public List<tblCliente>? Clientes { get; set; }
+    public List<tblCliente>? ClientesDispo { get; set; } = new();
+
+    protected async override Task OnInitializedAsync()
+    {
+        if (Permisos == null)
+        {
+            await LoadPermisos();
+            await LoadClientes();
+        }
+
+    }
+
+    [AllowAnonymous]
+    private async Task CreateRolAsync()
+    {
+        bool EspacioInicialNombre = char.IsWhiteSpace(RolesDTO.roleName[0]);
+        bool EspacioFinalNombre = char.IsWhiteSpace(RolesDTO.roleName[RolesDTO.roleName.Length - 1]);
+
+        if (EspacioInicialNombre || EspacioFinalNombre)
+        {
+            await sweetAlertService.FireAsync("Error", "El nombre no puede tener espacios en blanco al inicio o al final", SweetAlertIcon.Error);
+            return;
+        }
+        if (PermisosDispo.Count == 0 && ClientesDispo.Count == 0)
+        {
+            string messageDoble = "Se debe seleccionar al menos un Módulo y un Cliente";
+            await sweetAlertService.FireAsync("Error", messageDoble, SweetAlertIcon.Error);
+            return;
+        }
+
+        if (PermisosDispo.Count == 0)
+        {
+            string messageDoble = "Se debe seleccionar al menos un Módulo ";
+            await sweetAlertService.FireAsync("Error", messageDoble, SweetAlertIcon.Error);
+            return;
+        }
+
+        if (ClientesDispo.Count == 0)
+        {
+            string messageDoble = "Se debe seleccionar al menos un Cliente";
+            await sweetAlertService.FireAsync("Error", messageDoble, SweetAlertIcon.Error);
+            return;
+        }
+        var Cadena = Configuracion.GetSection("VariableApi")["AuthenticationApi"];
+
+
+        var responseHttpAuthentication = await repository.Post<createRolDTO, IdentityRoleDTO>($"{Cadena}/api/accounts/CreateRole", RolesDTO);
+        if (responseHttpAuthentication.Error)
+        {
+            var message = await responseHttpAuthentication.GetErrorMessageAsync();         
+            bool comienzaConCorcheteAbierto = message.StartsWith("[");
+            bool terminaConCorcheteCerrado = message.EndsWith("]");
+
+            if (comienzaConCorcheteAbierto && terminaConCorcheteCerrado)
+            {
+                List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                message = string.Join("\n", Errors.Select(t => t.description));
+            }
+            else
+            {
+                message = "[" + message + "]";
+                List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                message = string.Join("\n", Errors.Select(t => t.description));
+            }
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+
+        RolMarquesa.FechaCreacion = DateTime.Now;
+        RolMarquesa.Estado = true;
+        RolMarquesa.Nombre = RolesDTO.roleName;
+        RolMarquesa.Codigo = responseHttpAuthentication.Response.id;
+        RolMarquesa.Sincronizar = true;
+
+        var responseHttpMarquesa = await repository.Post("api/roles/CrearRol", RolMarquesa);
+
+        if (responseHttpMarquesa.Error)
+        {
+            var message = await responseHttpMarquesa.GetErrorMessageAsync();         
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+
+        var responseHttpRol = await repository.Get<tblRol>($"api/roles/GetRolNombre?nombre={RolesDTO.roleName}");
+        RolConsulta = responseHttpRol.Response!;
+
+        if (responseHttpRol.Error)
+        {
+            var messageRol = await responseHttpRol.GetErrorMessageAsync();
+            await sweetAlertService.FireAsync("Error", messageRol, SweetAlertIcon.Error);
+            return;
+        }
+
+        foreach (var item in PermisosDispo)
+        {
+            tblDetalleRolPermisos RolPermiso = new();
+
+            RolPermiso.Id_Permisos = item.Id;
+            RolPermiso.Id_Rol = RolConsulta.Id;
+            RolPermiso.Sincronizar = true;
+            var responseHttpRolPermiso = await repository.Post("api/roles/CrearRolPermiso", RolPermiso);
+
+            if (responseHttpRolPermiso.Error)
+            {
+                var messageRolPermiso = await responseHttpRolPermiso.GetErrorMessageAsync();             
+                await sweetAlertService.FireAsync("Error", messageRolPermiso, SweetAlertIcon.Error);
+                return;
+            }
+        }
+
+        foreach (var item in ClientesDispo)
+        {
+            tblDetalleRolCliente RolCliente = new();
+
+            RolCliente.Id_Cliente = item.Id;
+            RolCliente.Id_Rol = RolConsulta.Id;
+            RolCliente.Sincronizar = true;
+            var responseHttpRolCliente = await repository.Post("api/roles/CrearRolCliente", RolCliente);
+
+            if (responseHttpRolCliente.Error)
+            {
+                var messageRolCliente = await responseHttpRolCliente.GetErrorMessageAsync();
+                await sweetAlertService.FireAsync("Error", messageRolCliente, SweetAlertIcon.Error);
+                return;
+            }
+        }
+
+
+        navigationManager.NavigateTo("/Roles");
+        await sweetAlertService.FireAsync("Proceso terminado", "El Rol fue creado con éxito", SweetAlertIcon.Success);
+    }
+
+
+    public void Atras()
+    {
+        navigationManager.NavigateTo("Roles");
+    }
+
+    private async Task LoadPermisos()
+    {
+        var Cadena = Configuracion.GetSection("VariableApi")["AuthenticationApi"];
+        var responseHttpPermisos = await repository.Get<List<tblPermisos>>("api/permisos/GetPermisos");
+        if (responseHttpPermisos.Error)
+        {
+            var message = await responseHttpPermisos.GetErrorMessageAsync();
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+        Permisos = responseHttpPermisos.Response!;
+
+        var responseHttTipoApi = await repository.Get<tblTipoGrupo>("/api/permisos/TipoGrupo");
+        tblTipoGrupo TipoApi = responseHttTipoApi.Response!;
+
+        var responseHttpTipo = await repository.Get<List<tblTipo>>($"/api/productos/Empaque?id={TipoApi.Id}");
+
+        ListaTipoApi = responseHttpTipo.Response!;
+
+        foreach (var permiso in Permisos)
+        {
+            foreach (var api in ListaTipoApi)
+            {
+                if (permiso.Id_Aplicacion == api.Id)
+                {
+                    if (api.Nombre.Contains("Desk"))
+                    {
+                        api.Nombre = "Escritorio";
+                    }
+                    permiso.Aplicacion = api.Nombre;
+                }
+            }
+            
+        }
+    }
+
+    private async Task LoadClientes()
+    {
+        var Cadena = Configuracion.GetSection("VariableApi")["AuthenticationApi"];
+        var responseHttpClientes = await repository.Get<List<tblCliente>>("api/clientes");
+        if (responseHttpClientes.Error)
+        {
+            var message2 = await responseHttpClientes.GetErrorMessageAsync();
+            await sweetAlertService.FireAsync("Error", message2, SweetAlertIcon.Error);
+            return;
+        }
+        Clientes = responseHttpClientes.Response!;
+    }
+    public void ToggleSeleccion(tblPermisos elemento)
+    {
+        elemento.Seleccionado = !elemento.Seleccionado;
+
+        if (elemento.Seleccionado)
+        {
+            PermisosDispo.Add(elemento);
+            @foreach (var item in Permisos)
+            {
+                if (elemento.Id == item.Id)
+                {
+                    item.Seleccionado = true;
+                }
+            }
+
+        }
+        else
+        {
+            PermisosDispo.Remove(elemento);
+            @foreach (var item in Permisos)
+            {
+                if (elemento.Id == item.Id)
+                {
+                    item.Seleccionado = false;
+                }
+            }
+
+        }
+
+        StateHasChanged();
+    }
+
+    public void ToggleSeleccionCliente(tblCliente elemento)
+    {
+        elemento.Seleccionado = !elemento.Seleccionado;
+
+        if (elemento.Seleccionado)
+        {
+            ClientesDispo.Add(elemento);
+            @foreach (var item in Clientes)
+            {
+                if (elemento.Id == item.Id)
+                {
+                    item.Seleccionado = true;
+                }
+            }
+        }
+        else
+        {
+            ClientesDispo.Remove(elemento);
+            @foreach (var item in Clientes)
+            {
+                if (elemento.Id == item.Id)
+                {
+                    item.Seleccionado = false;
+                }
+            }
+
+        }
+
+        StateHasChanged();
+    }
+
+
+
+}

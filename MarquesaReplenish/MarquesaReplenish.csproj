@@ -1,0 +1,459 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{0F657807-BA05-465E-A890-0D89C3728138}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>MarquesaReplenish</RootNamespace>
+    <AssemblyName>MarquesaReplenish</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>IconPrincipal.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TargetZone>LocalIntranet</TargetZone>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GenerateManifests>false</GenerateManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="AplicacionesManager, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\Framework\Librerias Cadena\AplicacionesManager.dll</HintPath>
+    </Reference>
+    <Reference Include="BDManager, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\..\Team\Framework\Librerias Cadena\BDManager.dll</HintPath>
+    </Reference>
+    <Reference Include="FormsBase">
+      <HintPath>..\..\..\..\Framework\Librerias Cadena\FormsBase.dll</HintPath>
+    </Reference>
+    <Reference Include="Functions">
+      <HintPath>..\..\..\..\Framework\Librerias Cadena\Functions.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.DirectoryServices" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WinFormsControlLibrary">
+      <HintPath>..\..\..\..\Framework\Librerias Cadena\WinFormsControlLibrary.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Helpers\ClonarObjeto.cs" />
+    <Compile Include="Helpers\Conexion.cs" />
+    <Compile Include="Helpers\CruceContenedores.cs" />
+    <Compile Include="Helpers\File.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="View\ClaseBase.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="View\ClaseBase.Designer.cs">
+      <DependentUpon>ClaseBase.cs</DependentUpon>
+    </Compile>
+    <Compile Include="View\FrmLiberarInstitucion.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="View\FrmLiberarInstitucion.Designer.cs">
+      <DependentUpon>FrmLiberarInstitucion.cs</DependentUpon>
+    </Compile>
+    <Compile Include="View\FrmAuditoriaRepuesto.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="View\FrmAuditoriaRepuesto.Designer.cs">
+      <DependentUpon>FrmAuditoriaRepuesto.cs</DependentUpon>
+    </Compile>
+    <Compile Include="View\FrmCargarArchivo.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="View\FrmCargarArchivo.Designer.cs">
+      <DependentUpon>FrmCargarArchivo.cs</DependentUpon>
+    </Compile>
+    <Compile Include="View\FrmCreacionCiclo.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="View\FrmCreacionCiclo.Designer.cs">
+      <DependentUpon>FrmCreacionCiclo.cs</DependentUpon>
+    </Compile>
+    <Compile Include="View\FrmCrearUsuario.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="View\FrmCrearUsuario.Designer.cs">
+      <DependentUpon>FrmCrearUsuario.cs</DependentUpon>
+    </Compile>
+    <Compile Include="View\FrmEditarUsuario.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="View\FrmEditarUsuario.Designer.cs">
+      <DependentUpon>FrmEditarUsuario.cs</DependentUpon>
+    </Compile>
+    <Compile Include="View\FrmEliminacionCargue.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="View\FrmEliminacionCargue.Designer.cs">
+      <DependentUpon>FrmEliminacionCargue.cs</DependentUpon>
+    </Compile>
+    <Compile Include="View\FrmIngresarRepuesto.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="View\FrmIngresarRepuesto.Designer.cs">
+      <DependentUpon>FrmIngresarRepuesto.cs</DependentUpon>
+    </Compile>
+    <Compile Include="View\FrmIntercaleRepuesto.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="View\FrmIntercaleRepuesto.Designer.cs">
+      <DependentUpon>FrmIntercaleRepuesto.cs</DependentUpon>
+    </Compile>
+    <Compile Include="View\FrmListaUsuario.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="View\FrmListaUsuario.Designer.cs">
+      <DependentUpon>FrmListaUsuario.cs</DependentUpon>
+    </Compile>
+    <Compile Include="View\FrmLogin.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="View\FrmLogin.Designer.cs">
+      <DependentUpon>FrmLogin.cs</DependentUpon>
+    </Compile>
+    <Compile Include="View\FrmSelectColumnTablat.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="View\FrmSelectColumnTablat.Designer.cs">
+      <DependentUpon>FrmSelectColumnTablat.cs</DependentUpon>
+    </Compile>
+    <Compile Include="View\FrmTrazabilidad.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="View\FrmTrazabilidad.Designer.cs">
+      <DependentUpon>FrmTrazabilidad.cs</DependentUpon>
+    </Compile>
+    <Compile Include="View\FrmProcesarBiblia.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="View\FrmProcesarBiblia.Designer.cs">
+      <DependentUpon>FrmProcesarBiblia.cs</DependentUpon>
+    </Compile>
+    <Compile Include="View\FrmValidarusuario.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="View\FrmValidarusuario.Designer.cs">
+      <DependentUpon>FrmValidarusuario.cs</DependentUpon>
+    </Compile>
+    <Compile Include="View\FrmValideIntercale.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="View\FrmValideIntercale.Designer.cs">
+      <DependentUpon>FrmValideIntercale.cs</DependentUpon>
+    </Compile>
+    <Compile Include="View\Principla.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="View\Principla.Designer.cs">
+      <DependentUpon>Principla.cs</DependentUpon>
+    </Compile>
+    <Compile Include="View\UCUsuarioCrearEditar.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="View\UCUsuarioCrearEditar.Designer.cs">
+      <DependentUpon>UCUsuarioCrearEditar.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <EmbeddedResource Include="View\ClaseBase.resx">
+      <DependentUpon>ClaseBase.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="View\FrmLiberarInstitucion.resx">
+      <DependentUpon>FrmLiberarInstitucion.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="View\FrmAuditoriaRepuesto.resx">
+      <DependentUpon>FrmAuditoriaRepuesto.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="View\FrmCargarArchivo.resx">
+      <DependentUpon>FrmCargarArchivo.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="View\FrmCreacionCiclo.resx">
+      <DependentUpon>FrmCreacionCiclo.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="View\FrmCrearUsuario.resx">
+      <DependentUpon>FrmCrearUsuario.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="View\FrmEditarUsuario.resx">
+      <DependentUpon>FrmEditarUsuario.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="View\FrmEliminacionCargue.resx">
+      <DependentUpon>FrmEliminacionCargue.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="View\FrmIngresarRepuesto.resx">
+      <DependentUpon>FrmIngresarRepuesto.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="View\FrmIntercaleRepuesto.resx">
+      <DependentUpon>FrmIntercaleRepuesto.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="View\FrmListaUsuario.resx">
+      <DependentUpon>FrmListaUsuario.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="View\FrmLogin.resx">
+      <DependentUpon>FrmLogin.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="View\FrmSelectColumnTablat.resx">
+      <DependentUpon>FrmSelectColumnTablat.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="View\FrmTrazabilidad.resx">
+      <DependentUpon>FrmTrazabilidad.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="View\FrmProcesarBiblia.resx">
+      <DependentUpon>FrmProcesarBiblia.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="View\FrmValidarusuario.resx">
+      <DependentUpon>FrmValidarusuario.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="View\FrmValideIntercale.resx">
+      <DependentUpon>FrmValideIntercale.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="View\Principla.resx">
+      <DependentUpon>Principla.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="View\UCUsuarioCrearEditar.resx">
+      <DependentUpon>UCUsuarioCrearEditar.cs</DependentUpon>
+    </EmbeddedResource>
+    <None Include="ClassDiagram1.cd" />
+    <None Include="Properties\app.manifest" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MarquesaReplenish.MN\MarquesaReplenish.MN.csproj">
+      <Project>{A13C5CDE-526A-474C-AB1E-0F4E503197C5}</Project>
+      <Name>MarquesaReplenish.MN</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MarquesaReplenish.PD\MarquesaReplenish.PD.csproj">
+      <Project>{CAF739F6-6C52-489F-9EC9-7B1E7AD7B100}</Project>
+      <Name>MarquesaReplenish.PD</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\configuracionToolStripButton.Image.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\salirToolStripButton.Image.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\salirToolStripMenuItem.Image.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\tsbImpresionPDF.Image.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\edit.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\add-user.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\user.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\users-solid.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\user %281%29.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\upload-file.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\submit.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\gear.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\three-gears-of-configuration-tools.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\development.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\document.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\file-management.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\setting.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\eliminar %281%29.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\eliminar.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\expediente.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\eliminar %282%29.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\insertar %281%29.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\insertar %282%29.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\insertar %282%291.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\estadistica.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\insertar.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\insertar1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\poner-en-el-boton.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\poner-en-el-boton %281%29.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\poner-en-el-boton %282%29.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\insertar %283%29.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\pagina-web %281%29.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\borrar-archivo %281%29.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\auditoria %281%29.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\capas.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\debilidad.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\cerrar-sesion.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\cerrar-sesion %281%29.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.7.2 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\buscar %281%29.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\buscar %282%29.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\formato-de-archivo-csv %281%29.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\trazabilidad.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="IconPrincipal.ico" />
+    <None Include="Resources\pencil.png" />
+    <None Include="Resources\plus.png" />
+    <None Include="Resources\automatizacion.png" />
+    <None Include="Resources\celdas-de-tabla-de-una-columna-seleccionada-con-cruces %281%29.png" />
+    <None Include="Resources\celdas-de-tabla-de-una-columna-seleccionada-con-cruces.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

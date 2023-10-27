@@ -1,0 +1,91 @@
+﻿@using Microsoft.AspNetCore.Authorization;
+@inject IRepository repository
+@inject SweetAlertService sweetAlertService
+@inject NavigationManager navigationManager
+@inject ILoginService loginService
+
+
+<div style="background-color:black"  class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+    <nav class="flex-column">
+        <button type="button" onclick="@IndexClientes" style="width: 185px;margin-left: 16px;margin-top: 15px; font-size: 15px;" class="btn btn-dark">
+            Clientes
+        </button>
+
+        <button type="button" onclick="@IndexUsuarios" style="width: 185px;margin-left: 16px;margin-top: 15px; font-size: 15px;" class="btn btn-dark">
+            Usuarios
+        </button>
+
+        <button type="button" onclick="@IndexRoles" style="width: 185px;margin-left: 16px;margin-top: 15px; font-size: 15px;" class="btn btn-dark">
+            Roles
+        </button>
+
+        <button type="button" onclick="@IndexProductos" style="width: 185px;margin-left: 16px;margin-top: 15px; font-size: 15px;" class="btn btn-dark">
+            Productos
+        </button>
+
+        <button type="button" onclick="@IndexPoblacion" style="width: 185px;margin-left: 16px;margin-top: 15px; font-size: 15px;" class="btn btn-dark">
+            Población
+        </button>
+
+        <button type="button" onclick="@IndexConfiracionOptimizada" style="width: 185px;margin-left: 16px;margin-top: 15px; font-size: 15px;" class="btn btn-dark">
+            Configuración calculo optimizado contenedores-cajas
+        </button>
+
+        <button type="button" onclick="@IndexAdicional" style="width: 185px;margin-left: 16px;margin-top: 15px; font-size: 15px;" class="btn btn-dark">
+            Adicionales
+        </button>
+
+        
+        
+    </nav>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    private void IndexUsuarios()
+    {
+        navigationManager.NavigateTo("/Usuarios");
+    }
+
+    private void IndexRoles()
+    {
+        navigationManager.NavigateTo("/Roles");
+    }
+
+    private void IndexClientes()
+    {
+        navigationManager.NavigateTo("/Clientes");
+    }
+
+    private void IndexProductos()
+    {
+        int valor = 0;
+        navigationManager.NavigateTo($"/Productos/{valor}");
+    }
+
+    private void IndexPoblacion()
+    {
+        int valor = 0;
+        navigationManager.NavigateTo($"/Poblacion/{valor}");
+    }
+
+    private void IndexAdicional()
+    {
+        int valor = 0;
+        navigationManager.NavigateTo($"/Adicionales/{valor}");
+    }
+
+    private void IndexConfiracionOptimizada()
+    {
+        int valor = 0;
+        navigationManager.NavigateTo($"/ConfiguracionContenedor/{valor}");
+    }
+}

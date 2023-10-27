@@ -1,0 +1,165 @@
+is_global = true
+build_property.TargetFramework = net7.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = 
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = false
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = browser
+build_property.RootNamespace = MarquesaReplenish.Web
+build_property.RootNamespace = MarquesaReplenish.Web
+build_property.ProjectDir = D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.Web\
+build_property.RazorLangVersion = 7.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.Web
+build_property._RazorSourceGeneratorDebug = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/App.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Adicionales/CrearAdicional.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRpY2lvbmFsZXNcQ3JlYXJBZGljaW9uYWwucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Adicionales/EditarAdicionales.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRpY2lvbmFsZXNcRWRpdGFyQWRpY2lvbmFsZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Adicionales/ListarAdicionales.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRpY2lvbmFsZXNcTGlzdGFyQWRpY2lvbmFsZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/CalculoContenedores/ListarCalculoContenedores.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2FsY3Vsb0NvbnRlbmVkb3Jlc1xMaXN0YXJDYWxjdWxvQ29udGVuZWRvcmVzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Clientes/CrearCliente.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2xpZW50ZXNcQ3JlYXJDbGllbnRlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Clientes/EditarCliente.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2xpZW50ZXNcRWRpdGFyQ2xpZW50ZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Clientes/ListarClientes.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2xpZW50ZXNcTGlzdGFyQ2xpZW50ZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Counter.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ291bnRlci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/FetchData.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRmV0Y2hEYXRhLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Index.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5kZXgucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Poblacion/CrearPoblacion.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUG9ibGFjaW9uXENyZWFyUG9ibGFjaW9uLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Poblacion/EditarPoblacion.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUG9ibGFjaW9uXEVkaXRhclBvYmxhY2lvbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Poblacion/ListarPoblacion.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUG9ibGFjaW9uXExpc3RhclBvYmxhY2lvbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Productos/CrearProducto.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvZHVjdG9zXENyZWFyUHJvZHVjdG8ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Productos/EditarProductos.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvZHVjdG9zXEVkaXRhclByb2R1Y3Rvcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Productos/ListarProductos.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvZHVjdG9zXExpc3RhclByb2R1Y3Rvcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Roles/CreateRol.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUm9sZXNcQ3JlYXRlUm9sLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Roles/EditarRol.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUm9sZXNcRWRpdGFyUm9sLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Roles/IndexRoles.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUm9sZXNcSW5kZXhSb2xlcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Usuarios/ChangePassword.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXN1YXJpb3NcQ2hhbmdlUGFzc3dvcmQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Usuarios/ConfirmarCorreo.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXN1YXJpb3NcQ29uZmlybWFyQ29ycmVvLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Usuarios/EditUser.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXN1YXJpb3NcRWRpdFVzZXIucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Usuarios/ErrorConfirmarCorreo.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXN1YXJpb3NcRXJyb3JDb25maXJtYXJDb3JyZW8ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Usuarios/ExpiredPassword.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXN1YXJpb3NcRXhwaXJlZFBhc3N3b3JkLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Usuarios/IndexUsuarios.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXN1YXJpb3NcSW5kZXhVc3Vhcmlvcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Usuarios/Login.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXN1YXJpb3NcTG9naW4ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Usuarios/Logout.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXN1YXJpb3NcTG9nb3V0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Usuarios/RecoverPassword.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXN1YXJpb3NcUmVjb3ZlclBhc3N3b3JkLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Usuarios/Register.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXN1YXJpb3NcUmVnaXN0ZXIucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Pages/Usuarios/ResetPassword.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXN1YXJpb3NcUmVzZXRQYXNzd29yZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Shared/AuthLinks.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXEF1dGhMaW5rcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Shared/Pagination.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXFBhZ2luYXRpb24ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Shared/SurveyPrompt.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXFN1cnZleVByb21wdC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Shared/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXE1haW5MYXlvdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-umr8upwjij
+
+[D:/Team/Produccion/MarquesaReplenish/MarquesaReplenish_Frontend_CL25052023_branch/MarquesaReplenish.Web/Shared/NavMenu.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXE5hdk1lbnUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-d1thddonhb

@@ -1,0 +1,515 @@
+﻿@page "/Poblacion/{valor}"
+@using Microsoft.AspNetCore.Authorization;
+@using System.Drawing;
+@using System.IO;
+@using System.Security.Claims;
+@inject IRepository repository
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject SweetAlertService sweetAlertService
+@inject NavigationManager navigationManager
+@inject ILoginService loginService
+@attribute [Authorize]
+
+@if (Clientes is null)
+{
+    <div class="spinner" />
+}
+else
+{
+    <Pagination CurrentPage="currentPage"
+                TotalPages="totalPages"
+                SelectedPage="SelectedPageAsync" />
+    <GenericList MyList="Poblacion">
+
+
+        <h3>Población</h3>
+
+        <body>
+            <div class="card">
+                <div class="card-header">
+
+                    <div style="display: flex;justify-content: center;">
+                        <div class="mb-3" style="width: 500px;margin-right: 20px;">
+                            <label>Cliente:</label>
+                            <select id="cliente" class="form-select" @onchange="ClienteSeleccionado">
+                                <option value="0">-- Seleccione un cliente --</option>
+                                @if (ClientesAsignados is not null)
+                                {
+                                    @foreach (var cliente in ClientesAsignados)
+                                    {
+                                        if (cliente.Id == ParametroIdCLiente)
+                                        {
+                                            <option value="@($"{cliente.Id}|{cliente.Nombre}")" selected>@cliente.Nombre</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@($"{cliente.Id}|{cliente.Nombre}")">@cliente.Nombre</option>
+
+                                        }
+
+
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        @if (Productos != null)
+                        {
+                            <div class="mb-3" style="width: 500px;">
+                                <label>Productos:</label>
+                                <select id="Productos" class="form-select" @onchange="ProductoSeleccionado">
+                                    <option value="0">-- Seleccione un producto --</option>
+                                    @if (Productos is not null)
+                                    {
+                                        @foreach (var producto in Productos)
+                                        {
+                                            if (producto.Id == ParametroIdProducto)
+                                            {
+                                                <option value="@($"{producto.Id}|{producto.Nombre}")" selected>@producto.Nombre</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@($"{producto.Id}|{producto.Nombre}")">@producto.Nombre</option>
+                                            }
+
+                                        }
+                                    }
+                                </select>
+                            </div>
+
+                        }
+
+                    </div>
+                    <span>
+                        <i class="oi oi-list"></i> Población
+                        @if (ProdcutoId != 0)
+                        {
+                            <a id="CrearPoblacion" class="btn btn-sm btn-primary float-end" href="/CrearPoblacion/@crearPoblacion"><i class="oi oi-plus"></i> Crear Población</a>
+                        }
+                    </span>
+
+                </div>
+
+                <div class="card-body">
+                    <div class="mb-2" style="display: flex; flex-wrap:wrap; align-items: center;">
+                        <div>
+                            <input style="width: 400px;" type="text" class="form-control" id="titulo" placeholder="Buscar Poblacion..." @bind-value="Filter" />
+                        </div>
+                        <div class="mx-1">
+                            <button type="button" class="btn btn-outline-primary" @onclick="ApplyFilterAsync"><i class="oi oi-layers" /> Filtrar</button>
+                            <button type="button" class="btn btn-outline-danger" @onclick="CleanFilterAsync"><i class="oi oi-ban" /> Limpiar</button>
+                        </div>
+                    </div>
+
+                    <div style="width: 1036px;  height: 267px; overflow-x: scroll; overflow-y: scroll;">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th style="font-size: 15px;">Población</th>
+                                    <th style="font-size: 15px;">Numero Inicial Acta</th>
+                                    <th style="font-size: 15px;">Numero Inicial Contenedor o Caja</th>
+                                    <th style="font-size: 15px;">Población Adicional</th>
+                                    <th style="font-size: 15px;">Intérprete</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Poblacion != null)
+                                {
+
+                                    @foreach (var item in Poblacion)
+                                    {
+                                        string cadenaEdit = $"{@item.Id};{clienteId};{NombreCliente};{ProdcutoId};{NombreProducto}";
+                                        <tr>
+                                            <td style="font-size: 12px;">
+                                                @item.Nombre
+                                            </td>
+                                            <td style="font-size: 12px;">
+                                                @item.InicioActa
+                                            </td>
+                                            <td style="font-size: 12px;">
+                                                @item.InicioContenedorOCaja
+                                            </td>
+                                            <td style="font-size: 12px;">
+                                                @if (@item.Adicional == false)
+                                                {
+                                                    <p>NO</p>
+                                                }
+                                                else
+                                                {
+                                                    <p>SI</p>
+                                                }
+
+                                            </td>
+                                            <td style="font-size: 12px;">
+                                                @if (@item.Interprete == false)
+                                                {
+                                                    <p>NO</p>
+                                                }
+                                                else
+                                                {
+                                                    <p>SI</p>
+                                                }
+
+                                            </td>
+
+
+                                            <td style="font-size: 12px;width: 10px;">
+                                                <a href="/EditPoblacion/@cadenaEdit" class="btn btn-dark"><i class="oi oi-pencil" /></a>
+                                            </td>
+                                        </tr>
+                                    }
+
+                                }
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </body>
+    </GenericList>
+
+}
+
+@code {
+
+    List<tblPoblacion> PoblacionPaginado = new();
+    List<tblPoblacion> PoblacionFilter = new();
+    public List<tblProducto>? Productos { get; set; }
+    public List<tblCliente>? Clientes { get; set; }
+    public List<tblCliente>? ClientesAsignados = new();
+    public List<tblDetalleRolCliente>? ClientesRol { get; set; }
+    private string userRole;
+    private bool ToFilter = false;
+    private int currentPage = 1;
+    private int totalPages;
+    private bool ClienteSelecc = false;
+    private string NombreCliente = null;
+    private string NombreProducto = null;
+    private string crearPoblacion = "";
+    private string ParametroNombreCliente;
+    private ChangeEventArgs variable = new();
+    private int clienteId;
+    private int ProdcutoId;
+    private int ParametroIdCLiente;
+    private int ParametroIdProducto;
+    private AuthenticationState authState;
+    private ClaimsPrincipal user;
+    public List<tblPoblacion>? Poblacion { get; set; }
+    private string productoSeleccionado = "0";
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string Page { get; set; } = string.Empty;
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string Filter { get; set; } = string.Empty;
+
+    [Parameter]
+    public string valor { get; set; } = string.Empty;
+
+    protected async override Task OnInitializedAsync()
+    {
+        try
+        {
+            var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authenticationState.User;
+
+            if (user.Identity.IsAuthenticated)
+            {
+                // Obtener el rol del usuario (asumiendo que estás utilizando roles)
+                userRole = user.FindFirst(ClaimTypes.Role)?.Value;
+            }
+            string UserName = user.Identity.Name;
+            if (UserName != null)
+            {
+                await LoadAsync();
+                await LoadCliente();
+
+                if (valor != "0")
+                {
+                    ClienteSelecc = true;
+                    int page = 1;
+                    var Parametros = valor.Split(";");
+                    ParametroIdCLiente = Convert.ToInt32(Parametros[0]);
+                    clienteId = ParametroIdCLiente;
+                    NombreCliente = Parametros[1];
+                    ParametroIdProducto = Convert.ToInt32(Parametros[2]);
+                    ProdcutoId = ParametroIdProducto;
+                    NombreProducto = Parametros[3];
+                    //ParametroNombreCliente = Parametros[2];
+                    //NombreCliente = ParametroNombreCliente;
+                    var responseHttProductos = await repository.Get<List<tblProducto>>($"/api/productos/ProductosCliente?cliente={ParametroIdCLiente}");
+                    Productos = responseHttProductos.Response;
+                    var responseHttPoblacion = await repository.Get<List<tblPoblacion>>($"/api/poblacion/GetPoblacionPorProducto?idProducto={ParametroIdProducto}");
+                    Poblacion = responseHttPoblacion.Response;
+                    crearPoblacion = $"{ParametroIdCLiente};{NombreCliente};{ParametroIdProducto};{NombreProducto}";
+
+                    int redondeo = (int)Math.Ceiling(Poblacion.Count / 10.0);
+                    totalPages = redondeo;
+
+                    int startIndex = (page - 1) * 10;
+                    int endIndex = Math.Min(startIndex + 10, Poblacion.Count);
+
+                    // Mostramos los clientes en el rango determinado
+                    for (int i = startIndex; i < endIndex; i++)
+                    {
+                        PoblacionPaginado.Add(Poblacion[i]);
+                    }
+
+                    Poblacion = PoblacionPaginado;
+                }
+            }
+
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
+    }
+
+    private async Task LoadAsync(int page = 1)
+    {
+        try
+        {
+            if (ProdcutoId == 0)
+            {
+                ProdcutoId = ParametroIdProducto;
+            }
+            var responseHttPoblacion = await repository.Get<List<tblPoblacion>>($"/api/poblacion/GetPoblacionPorProducto?idProducto={ProdcutoId}");
+            if (responseHttPoblacion.HttpResponseMessage.StatusCode.ToString() == "Unauthorized")
+            {
+                var Message = "La sesión ha expirado, Inicia sesión de nuevo, por favor";
+                await sweetAlertService.FireAsync("Sesión expirada", Message, SweetAlertIcon.Error);
+                await loginService.LogoutAsync();
+                navigationManager.NavigateTo("/Login");
+                return;
+            }
+            Poblacion = responseHttPoblacion.Response;
+
+            if (ToFilter == true)
+            {
+                PoblacionFilter = new();
+                foreach (var item in Poblacion)
+                {
+                    if (item.Nombre.ToLower().Contains(Filter.ToLower()))
+                    {
+                        PoblacionFilter.Add(item);
+                    }
+                }
+
+                Poblacion = PoblacionFilter;
+                ToFilter = false;
+            }
+            int redondeo = (int)Math.Ceiling(Poblacion.Count / 10.0);
+            totalPages = redondeo;
+
+            int startIndex = (page - 1) * 10;
+            int endIndex = Math.Min(startIndex + 10, Poblacion.Count);
+            PoblacionPaginado.Clear();
+            // Mostramos los clientes en el rango determinado
+            for (int i = startIndex; i < endIndex; i++)
+            {
+                PoblacionPaginado.Add(Poblacion[i]);
+            }
+            Poblacion = PoblacionPaginado;
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+
+
+    }
+
+    private async Task LoadCliente(int page = 1)
+    {
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var User = authState.User;
+            var Cadena = Configuracion.GetSection("VariableApi")["AuthenticationApi"];
+            var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authenticationState.User;
+
+            if (user.Identity.IsAuthenticated)
+            {
+                // Obtener el rol del usuario (asumiendo que estás utilizando roles)
+                userRole = user.FindFirst(ClaimTypes.Role)?.Value;
+            }
+            string UserName = user.Identity.Name;
+            var responseHpptUsuario = await repository.Get<UserDTO>($"{Cadena}/api/Accounts/GetUserName?UserName={UserName}");
+            if (responseHpptUsuario.HttpResponseMessage.StatusCode.ToString() == "Unauthorized")
+            {
+                var Message = "La sesión ha expirado, Inicia sesión de nuevo, por favor";
+                await sweetAlertService.FireAsync("Sesión expirada", Message, SweetAlertIcon.Error);
+                await loginService.LogoutAsync();
+                navigationManager.NavigateTo("/Login");
+
+            }
+            if (responseHpptUsuario.Error)
+            {
+                string? message = await responseHpptUsuario.GetErrorMessageAsync();
+                bool comienzaConCorcheteAbierto = message.StartsWith("[");
+                bool terminaConCorcheteCerrado = message.EndsWith("]");
+
+                if (comienzaConCorcheteAbierto && terminaConCorcheteCerrado)
+                {
+                    List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                    message = string.Join("\n", Errors.Select(t => t.description));
+                }
+                else
+                {
+                    message = "[" + message + "]";
+                    List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                    message = string.Join("\n", Errors.Select(t => t.description));
+                }
+
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+            var responseHttUserMarquesa = await repository.Get<tblUsuario>($"/api/roles/GetUserUserName?UserName={responseHpptUsuario.Response.id}");
+            var responseHttRol = await repository.Get<tblRol>($"/api/roles/GetRolCodigo?Id={responseHttUserMarquesa.Response.Id_Rol}");
+            var responseHttRolCliente = await repository.Get<List<tblDetalleRolCliente>>($"/api/clientes/GetClientesPorRol?idRol={responseHttRol.Response.Id}");
+            ClientesRol = responseHttRolCliente.Response!;
+
+            var responseHtt = await repository.Get<List<tblCliente>>("/api/clientes");
+            Clientes = responseHtt.Response;
+
+            foreach (var item in Clientes)
+            {
+                foreach (var item2 in ClientesRol)
+                {
+                    if (item.Id == item2.Id_Cliente)
+                    {
+                        ClientesAsignados.Add(item);
+                    }
+                }
+            }
+
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
+    }
+
+    private async Task CleanFilterAsync()
+    {
+        Filter = string.Empty;
+        await ApplyFilterAsync();
+    }
+
+    private async Task ApplyFilterAsync()
+    {
+        int page = 1;
+        ToFilter = true;
+        currentPage = page;
+        await LoadAsync(page);
+
+    }
+    private async Task SelectedPageAsync(int page)
+    {
+        currentPage = page;
+        await LoadAsync(page);
+
+    }
+
+    private async Task ClienteSeleccionado(ChangeEventArgs e)
+    {
+        try
+        {
+            ProdcutoId = 0;
+            var values = e.Value.ToString().Split('|');
+            if (values[0] == "0")
+            {
+                Poblacion.Clear();
+                Productos.Clear();
+                Productos = null;
+                return;
+            }
+            if (Productos is null)
+            {
+            }
+            else
+
+            {
+                Productos.Clear();
+                NombreCliente = "";
+            }
+
+            clienteId = Convert.ToInt32(values[0]);
+            var clienteNombre = values[1];
+            NombreCliente = clienteNombre;
+            variable = e;
+
+
+            ClienteSelecc = true;
+            var responseHttProductos = await repository.Get<List<tblProducto>>($"/api/productos/ProductosCliente?cliente={clienteId}");
+            Productos = responseHttProductos.Response;
+        }
+        catch (Exception ex)
+        {
+
+            throw;
+        }
+
+    }
+
+    private async Task ProductoSeleccionado(ChangeEventArgs e)
+    {
+        try
+        {
+            Poblacion.Clear();
+            var values = e.Value.ToString().Split('|');
+            if (productoSeleccionado != "0")
+            {
+                var partes = productoSeleccionado.Split('|');
+                var productoId = partes[0];
+                var productoNombre = partes[1];
+
+            }
+            if (values[0] == "0")
+            {
+                Poblacion.Clear();
+                ProdcutoId = 0;
+                return;
+            }
+            int page = 1;
+            currentPage = page;
+            Filter = string.Empty;
+
+
+            ProdcutoId = Convert.ToInt32(values[0]);
+            ParametroIdProducto = ProdcutoId;
+            NombreProducto = values[1];
+            crearPoblacion = $"{clienteId};{NombreCliente};{ParametroIdProducto};{NombreProducto}";
+            var responseHttPoblacion = await repository.Get<List<tblPoblacion>>($"/api/poblacion/GetPoblacionPorProducto?idProducto={ProdcutoId}");
+            Poblacion = responseHttPoblacion.Response!;
+
+            int redondeo = (int)Math.Ceiling(Poblacion.Count / 10.0);
+            totalPages = redondeo;
+
+            int startIndex = (page - 1) * 10;
+            int endIndex = Math.Min(startIndex + 10, Poblacion.Count);
+
+            // Mostramos los clientes en el rango determinado
+            for (int i = startIndex; i < endIndex; i++)
+            {
+                PoblacionPaginado.Add(Poblacion[i]);
+            }
+
+            Poblacion = PoblacionPaginado;
+
+        }
+        catch (Exception ex)
+        {
+
+            throw;
+        }
+
+    }
+}

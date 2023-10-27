@@ -1,0 +1,125 @@
+﻿@inject IRepository repository
+@inject SweetAlertService sweetAlertService
+@inject NavigationManager navigationManager
+@inject ILoginService loginService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using System.Net.Http.Json
+@inject HttpClient httpClient
+@using MarquesaReplenish.Web.Helpers;
+@using Newtonsoft.Json;
+@using Microsoft.AspNetCore.Components.Web
+@using System.Web
+@using System.Collections.Specialized;
+@inject IJSRuntime js
+
+
+<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+            <Authorizing>
+                <p>Autorizando...</p>
+            </Authorizing>
+        </AuthorizeRouteView>
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <CascadingAuthenticationState>
+            <PageTitle>No encontrado</PageTitle>
+            <LayoutView Layout="@typeof(MainLayout)">
+                <p role="alert">Lo sentimos no hay nada en esta ruta.</p>
+            </LayoutView>
+        </CascadingAuthenticationState>
+    </NotFound>
+</Router>
+
+@code {
+    [CascadingParameter] public Task<AuthenticationState> authenticationState { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        await js.InicializarTimerInactivo(DotNetObjectReference.Create(this));
+        bool confirmarCorreo = false; 
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+        var uri = new Uri(NavigationManager.Uri);
+        if (uri.AbsoluteUri.Contains("ConfirmEmail"))
+        {
+            await loginService.LogoutAsync();
+            string cadenaApi = $"{Configuracion["VariableApi:AuthenticationApi"]}/";
+            string nuevaCadena = uri.AbsoluteUri.Replace(NavigationManager.BaseUri, cadenaApi);
+            var responseHttp = await repository.Get(nuevaCadena);
+            if (responseHttp.Error)
+            {
+                NavigationManager.NavigateTo("Login");
+                NavigationManager.NavigateTo("api/Accounts/ErrorConfirmEmail");
+                return;
+            }
+            else
+            {
+                NavigationManager.NavigateTo("Login");
+                NavigationManager.NavigateTo("api/Accounts/ConfirmEmail");
+                return;
+            }
+            confirmarCorreo = true;
+        }
+
+        if (uri.AbsoluteUri.Contains("ResetPassword"))
+        {
+            string userid;
+            string token;
+            string TokenV;
+            await loginService.LogoutAsync();
+            string cadenaApi = $"{Configuracion["VariableApi:AuthenticationApi"]}/";
+            string nuevaCadena = uri.AbsoluteUri.Replace(NavigationManager.BaseUri, cadenaApi);
+
+            string useridParam = HttpUtility.ParseQueryString(uri.Query).Get("userid");
+            //string tokenParam = HttpUtility.ParseQueryString(uri.Query).Get("token");
+            string tokenParam = "No se encontró Token";
+            string query = new Uri(uri.AbsoluteUri).Query;
+            token = query.Substring(query.IndexOf("token=") + "token=".Length);
+            userid = useridParam;
+
+
+
+            NavigationManager.NavigateTo("Login");
+            NavigationManager.NavigateTo($"/api/Accounts/ResetPassword?userid={userid}&token={token}");
+            return;
+
+        }
+
+        if (!user.Identity!.IsAuthenticated && !confirmarCorreo)
+        {
+            navigationManager.NavigateTo("/");
+
+        }
+
+       if (user.Identity.IsAuthenticated && uri.AbsoluteUri.Contains("Login"))
+        {
+            navigationManager.NavigateTo("/");
+
+        }
+
+        if (user.Identity.IsAuthenticated == false)
+        {
+            navigationManager.NavigateTo("/Login");
+        }
+
+        
+
+    }
+
+    [JSInvokable]
+    public async Task Logout()
+    {
+        var authState = await authenticationState;
+        if (authState.User.Identity.IsAuthenticated)
+        {
+            navigationManager.NavigateTo("logout");
+        }
+
+    }
+
+
+}

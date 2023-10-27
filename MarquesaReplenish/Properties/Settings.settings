@@ -1,0 +1,33 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="MarquesaReplenish.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="RutaBaseArchivoSalida" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\\172.16.20.6\Impresion\Entradas\ICFES\@NombrePrueba</Value>
+    </Setting>
+    <Setting Name="ListaTiposPruebas" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="NombreColumnaActa" Type="System.String" Scope="User">
+      <Value Profile="(Default)">COD_ACTA</Value>
+    </Setting>
+    <Setting Name="NombreColumnaContenedor" Type="System.String" Scope="User">
+      <Value Profile="(Default)">COD_CONTENEDOR</Value>
+    </Setting>
+    <Setting Name="NombreColumnaTulaVacia" Type="System.String" Scope="User">
+      <Value Profile="(Default)">TULA_VACIA</Value>
+    </Setting>
+    <Setting Name="NombreColumnaCajaVacia" Type="System.String" Scope="User">
+      <Value Profile="(Default)">CAJA_VACIA</Value>
+    </Setting>
+    <Setting Name="NombreColumnaBolsa" Type="System.String" Scope="User">
+      <Value Profile="(Default)">CODIGO_BOLSA</Value>
+    </Setting>
+    <Setting Name="PrefijoColmnaBolsa" Type="System.String" Scope="User">
+      <Value Profile="(Default)">B</Value>
+    </Setting>
+    <Setting Name="RutaBaseTemp" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\MarquesaReplenish</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

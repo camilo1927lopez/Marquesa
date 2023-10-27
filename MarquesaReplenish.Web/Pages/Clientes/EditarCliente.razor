@@ -1,0 +1,222 @@
+﻿@page "/EditCliente/{idCliente}"
+@inject IRepository repository
+@inject SweetAlertService sweetAlertService
+@inject NavigationManager navigationManager
+@inject ILoginService loginService
+@using System.Security.Claims;
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@attribute [Authorize]
+
+@if (Cliente is null)
+{
+    <div class="spinner" />
+}
+else
+{
+<h3>Editar Cliente</h3>
+<EditForm Model="Cliente" OnValidSubmit="EditarClienteAsync">
+    <DataAnnotationsValidator />
+    <h5>Campo obligatorio *</h5>
+            <div class="row">
+                <div class="col-6">
+                    <div class="mb-3">
+                        <label style="margin-bottom: 10px;">Nombre*:</label>
+                        <div style="width: 260px;">
+                            <InputText id="Nombre" class="form-control" @bind-Value="@Cliente.Nombre" />
+                            <ValidationMessage For="@(() => Cliente.Nombre)" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label style="margin-bottom: 10px;">NIT*:</label>
+                        <div style="width: 260px;">
+                            <InputText id="nit" class="form-control" @bind-Value="@Cliente.Nit" />
+                            <ValidationMessage For="@(() => Cliente.Nit)" />
+                        </div>
+                    </div>
+
+                    @if (NuevaImagem == false)
+                    {
+                        <div class="mb-3">
+                            <label style="margin-bottom: 10px;">Cargar Imagen-Logo*:</label>
+                            <InputFile style="width: 400px;" OnChange="OnFileChange" accept=".png" />
+                            <ValidationMessage For="@(() => Cliente.Img)" />
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mb-3">
+                            <label style="margin-bottom: 10px;">Cargar Imagen-Logo*:</label>
+                            <InputFile style="width: 400px;" OnChange="OnFileChange" accept=".png" />
+                            <ValidationMessage For="@(() => Cliente.Img)" />
+                        </div>
+                    }
+
+
+                    <div class="mb-3">
+
+
+                        @if (Cliente.Img != null)
+                        {
+                            <label style="margin-bottom: 10px;">Imagen-Logo Seleccionada:</label>
+                            string base64String = Cliente.Img;
+                            string imageSource = $"data:image/png;base64,{base64String}";
+                            <img style="width: 135px;height: 90px;" src="@imageSource" alt="Imagen">
+
+                        }
+
+                    </div>
+
+
+                </div>
+            </div>
+    <button id="atras" class="btn btn-danger" onclick="@Atras">Atrás</button>
+    <button id="registrar" class="btn btn-primary" type="submit">Registrar</button>
+
+</EditForm>
+
+}
+
+@code {
+    tblCliente Cliente = new();
+    [Parameter]
+    public string idCliente { get; set; }
+    bool NuevaImagem = false;
+    bool activar = false;
+    private string userRole;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            // Obtener el rol del usuario (asumiendo que estás utilizando roles)
+            userRole = user.FindFirst(ClaimTypes.Role)?.Value;
+        }
+
+        string UserName = user.Identity.Name;
+        if (UserName != null)
+        {
+            await LoadCliente();
+        }
+        
+
+    }
+
+    private async Task EditarClienteAsync()
+    {
+
+        Cliente.Id = Convert.ToInt32(idCliente);
+        var responseHttp = await repository.Post<tblCliente>($"/api/clientes/UpdateCliente",Cliente);
+        if (responseHttp.Error)
+        {
+            var message = await responseHttp.GetErrorMessageAsync();
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+
+        navigationManager.NavigateTo("/Clientes");
+        await sweetAlertService.FireAsync("Proceso terminado", "El Cliente fue editado con éxito", SweetAlertIcon.Success);
+
+    }
+
+    private async Task OnFileChange(InputFileChangeEventArgs e)
+    {
+        await sweetAlertService.FireAsync("Espera un momento", "Validando características de la Imagen-Logo", SweetAlertIcon.Info);
+        activar = true;
+        var file = e.File;
+
+        if (file != null)
+        {
+            if (file.ContentType == "image/png")
+            {
+                // Leer los datos del archivo en una matriz de bytes
+                var imageBytes = new byte[file.Size];
+                using (var stream = new MemoryStream())
+                {
+                    await file.OpenReadStream().ReadAsync(imageBytes);
+                }
+
+                // Cargar la imagen desde la matriz de bytes
+                using (var image = Image.Load(imageBytes))
+                {
+                    // Obtener la información de la imagen (incluida la resolución)
+                    var imageInfo = image.Metadata;
+
+                    // Obtener la resolución horizontal y vertical
+                    var horizontalResolution = imageInfo.HorizontalResolution;
+                    var verticalResolution = imageInfo.VerticalResolution;
+
+                    var width = image.Width;
+                    var height = image.Height;
+                    if (width != 100 || height != 100)
+                    {
+                        if (NuevaImagem == false)
+                        {
+                            NuevaImagem = true;
+                        }
+                        else
+                        {
+                            NuevaImagem = false;
+                        }
+
+                        Cliente.Img = null;
+                        activar = false;
+                        await sweetAlertService.FireAsync("Error al cargar la Imagen-Logo",
+                        "La Imagen-Logo cargada no cumple con el requisito del tamaño en píxeles  100x100", SweetAlertIcon.Error);
+                        return;
+
+                    }
+
+
+
+                    activar = false;
+
+                    // Convierte la imagen a base64 y almacénala en la propiedad Cliente.Img
+                    Cliente.Img = Convert.ToBase64String(imageBytes);
+
+                }
+            }
+            else
+            {
+                // Mostrar un mensaje de error al usuario indicando que solo se aceptan imágenes PNG.
+                // También puedes restablecer o limpiar el campo de carga para evitar que el usuario
+                // siga seleccionando el archivo incorrecto.
+                // Ejemplo de mensaje de error:
+                // ModelState.AddModelError(string.Empty, "Por favor, selecciona solo imágenes PNG.");
+                Cliente.Img = null;
+                activar = false;
+                await sweetAlertService.FireAsync("Error al cargar la Imagen-Logo", "La Imagen-Logo cargada no es de tipo PNG", SweetAlertIcon.Error);
+                return;
+            }
+        }
+    }
+    private async Task<string> ConvertToBase64(IBrowserFile file)
+    {
+        var buffer = new byte[file.Size];
+        await file.OpenReadStream().ReadAsync(buffer);
+
+        return $"{Convert.ToBase64String(buffer)}";
+    }
+
+    public void Atras()
+    {
+        navigationManager.NavigateTo("/Clientes");
+    }
+
+
+    private async Task LoadCliente()
+    {
+        var responseHttp = await repository.Get<tblCliente>($"/api/clientes/GetCliente?Id={idCliente}");
+        if (responseHttp.Error)
+        {
+            var message = await responseHttp.GetErrorMessageAsync();
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+
+        Cliente = responseHttp.Response;
+    
+    }
+}

@@ -1,0 +1,27 @@
+﻿@page "/"
+@using System.Threading.Tasks
+@using System.Timers
+@inject SweetAlertService sweetAlertService
+@inject NavigationManager navigationManager
+@inject ILoginService loginService
+
+@attribute [Authorize]
+<PageTitle>Home</PageTitle>
+
+
+<h1>Bienvenido a Marquesa</h1>
+
+@code{
+
+
+    private bool muestraAlerta = false;
+    private CancellationTokenSource inactivityTokenSource;
+    private const int InactivityTimeoutMinutes = 1;
+
+  
+}
+
+
+
+    
+

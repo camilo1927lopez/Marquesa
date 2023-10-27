@@ -1,0 +1,608 @@
+﻿@page "/ConfiguracionContenedor/{valor}"
+@using Microsoft.AspNetCore.Authorization;
+@using System.Drawing;
+@using System.IO;
+@using System.Reflection;
+@using System.Security.Claims;
+@using System.ComponentModel;
+@using System.ComponentModel.DataAnnotations;
+@inject IRepository repository
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject SweetAlertService sweetAlertService
+@inject NavigationManager navigationManager
+@inject ILoginService loginService
+@attribute [Authorize]
+
+
+@if (ClientesAsignados.Count == 0)
+{
+    <div class="spinner" />
+}
+else
+{
+
+    <h3>Configurar calculo optimizado contenedores-Cajas</h3>
+
+    <body>
+        <div class="card">
+            <div class="card-header">
+
+                <div style="display: flex;justify-content: center;">
+                    <div class="mb-3" style="width: 300px;margin-right: 10px;">
+                        <label>Cliente:</label>
+                        <select id="cliente" class="form-select" @onchange="ClienteSeleccionado">
+                            <option value="0">-- Seleccione un cliente --</option>
+                            @if (ClientesAsignados is not null)
+                            {
+                                @foreach (var cliente in ClientesAsignados)
+                                {
+                                    if (cliente.Id == ParametroIdCLiente)
+                                    {
+                                        <option value="@($"{cliente.Id}|{cliente.Nombre}")" selected>@cliente.Nombre</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@($"{cliente.Id}|{cliente.Nombre}")">@cliente.Nombre</option>
+
+                                    }
+
+
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    @if (Productos.Count != 0)
+                    {
+                        <div class="mb-3" style="width: 300px;margin-right: 10px;">
+                            <label>Productos:</label>
+                            <select id="Productos" class="form-select" @onchange="ProductoSeleccionado">
+                                <option value="0">-- Seleccione un producto --</option>
+                                @if (Productos is not null)
+                                {
+                                    @foreach (var producto in Productos)
+                                    {
+                                        if (producto.Id == ParametroIdProducto)
+                                        {
+                                            <option value="@($"{producto.Id}|{producto.Nombre}")" selected>@producto.Nombre</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@($"{producto.Id}|{producto.Nombre}")">@producto.Nombre</option>
+                                        }
+
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                    }
+
+                    @if (ListaTipoCalculo.Count != 0)
+                    {
+                        <div class="mb-3" style="width: 300px;margin-right: 10px;">
+                            <label>Seleccione el componente:</label>
+                            <select id="Componente" class="form-select" @onchange="ComponenteSeleccionado">
+                                <option value="0">-- Seleccione un componente --</option>
+                                @if (ListaTipoCalculo is not null)
+                                {
+                                    @foreach (var calculo in ListaTipoCalculo)
+                                    {
+
+                                        <option value="@calculo.Id">@calculo.Nombre</option>
+
+
+                                    }
+
+                                }
+                                }
+                            </select>
+                        </div>
+
+                    }
+
+                    @* @if (Campos.Count != 0)
+                {
+                <div class="mb-3" style="width: 240px;margin-right: 10px;">
+                <label>Seleccione el campo:</label>
+                <select id="campo" class="form-select" @onchange="ComponenteSeleccionado">
+                <option value="0">-- Seleccione un campo --</option>
+                @if (Campos is not null)
+                {
+                @foreach (var campo in Campos)
+                {
+
+                <option value="@campo">@campo</option>
+
+
+                }
+
+                }
+                }
+                </select>
+                </div>
+
+                }*@
+
+                </div>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="row" style="display: flex;flex-flow: row;">
+                    <div style="width: 500px; overflow-x: scroll; overflow-y: scroll; height: 270px; height: 320px; margin-bottom: 20px; position: relative;">
+                        <h3 style="position: sticky; top: 0; background-color: white;">Campos</h3>
+                        <table class="table">
+                            <thead style="position: sticky; top: 30px; background-color: white;">
+                                <tr>
+                                    <th>Nombre campo</th>
+                                    <th>Agregar/Eliminar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var elemento in Campos)
+                                {
+                                    <tr>
+                                        <td>@elemento.Nombre</td>
+                                        <td>
+                                            @if (elemento.Seleccionado == false)
+                                            {
+                                                <button id="AgregarCampo" class="btn btn-primary" @onclick=@(() => ToggleSeleccion(elemento))>+</button>
+                                            }
+                                            else
+                                            {
+                                                <button id="EliminarCampo" class="btn btn-danger" @onclick=@(() => ToggleSeleccion(elemento))>-</button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div style="width: 550px; overflow-x: scroll; overflow-y: scroll; height: 320px; position: relative;">
+                        <h3 style="position: sticky; top: 0; background-color: white;">Campos Seleccionados</h3>
+                        <table class="table">
+                            <thead style="position: sticky; top: 30px; background-color: white;">
+                                <tr>
+                                    <th>Nombre campo</th>
+                                    <th>Orden</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (CamposSeleccionados != null)
+                                {
+                                    @foreach (var elemento in CamposSeleccionados)
+                                    {
+                                        <tr>
+                                            <td>@elemento.Nombre</td>
+                                            <td>@elemento.orden</td>
+                                            <td>
+                                                <button id="AgregarCampo" class="btn btn-primary fa-solid fa-caret-up" @onclick=@(() => ToggleSeleccionPosicionUp(elemento))></button>
+                                            </td>
+                                            <td>
+                                                <button id="AgregarCampo" class="btn btn-danger fa-solid fa-caret-down" @onclick=@(() => ToggleSeleccionPosicionDown(elemento))></button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </body>
+
+
+
+}
+
+
+@code {
+
+
+    public List<tblProducto>? Productos = new();
+    public List<CamposDTO>? Campos = new();
+    public List<CamposDTO>? CamposSeleccionados = new();
+    public List<tblCliente>? Clientes { get; set; }
+    public List<tblCliente>? ClientesAsignados = new();
+    public List<tblTipo>? ListaTipoCalculo = new();
+    public List<tblDetalleRolCliente>? ClientesRol { get; set; }
+    private string userRole;
+    private bool ToFilter = false;
+    private int currentPage = 1;
+    private int totalPages;
+    private bool ClienteSelecc = false;
+    private string NombreCliente = null;
+    private string NombreProducto = null;
+    private string ParametroNombreCliente;
+    private ChangeEventArgs variable = new();
+    private int clienteId;
+    private int ProdcutoId;
+    private int ParametroIdCLiente;
+    private int ParametroIdProducto;
+    private AuthenticationState authState;
+    private ClaimsPrincipal user;
+    private string productoSeleccionado = "0";
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string Page { get; set; } = string.Empty;
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string Filter { get; set; } = string.Empty;
+
+    [Parameter]
+    public string valor { get; set; } = string.Empty;
+
+    protected async override Task OnInitializedAsync()
+    {
+        try
+        {
+            await LoadCliente();
+
+            if (valor != "0")
+            {
+                ClienteSelecc = true;
+                int page = 1;
+                var Parametros = valor.Split(";");
+                ParametroIdCLiente = Convert.ToInt32(Parametros[0]);
+                clienteId = ParametroIdCLiente;
+                NombreCliente = Parametros[1];
+                ParametroIdProducto = Convert.ToInt32(Parametros[2]);
+                ProdcutoId = ParametroIdProducto;
+                NombreProducto = Parametros[3];
+                //ParametroNombreCliente = Parametros[2];
+                //NombreCliente = ParametroNombreCliente;
+                var responseHttProductos = await repository.Get<List<tblProducto>>($"/api/productos/ProductosCliente?cliente={ParametroIdCLiente}");
+                Productos = responseHttProductos.Response;
+
+
+            }
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
+    }
+
+
+    private async Task LoadCliente(int page = 1)
+    {
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var User = authState.User;
+            var Cadena = Configuracion.GetSection("VariableApi")["AuthenticationApi"];
+            var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authenticationState.User;
+
+            if (user.Identity.IsAuthenticated)
+            {
+                // Obtener el rol del usuario (asumiendo que estás utilizando roles)
+                userRole = user.FindFirst(ClaimTypes.Role)?.Value;
+            }
+            string UserName = user.Identity.Name;
+            if (UserName != null)
+            {
+                var responseHpptUsuario = await repository.Get<UserDTO>($"{Cadena}/api/Accounts/GetUserName?UserName={UserName}");
+                if (responseHpptUsuario.HttpResponseMessage.StatusCode.ToString() == "Unauthorized")
+                {
+                    var Message = "La sesión ha expirado, Inicia sesión de nuevo, por favor";
+                    await sweetAlertService.FireAsync("Sesión expirada", Message, SweetAlertIcon.Error);
+                    await loginService.LogoutAsync();
+                    navigationManager.NavigateTo("/Login");
+
+                }
+                if (responseHpptUsuario.Error)
+                {
+                    string? message = await responseHpptUsuario.GetErrorMessageAsync();
+                    bool comienzaConCorcheteAbierto = message.StartsWith("[");
+                    bool terminaConCorcheteCerrado = message.EndsWith("]");
+
+                    if (comienzaConCorcheteAbierto && terminaConCorcheteCerrado)
+                    {
+                        List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                        message = string.Join("\n", Errors.Select(t => t.description));
+                    }
+                    else
+                    {
+                        message = "[" + message + "]";
+                        List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                        message = string.Join("\n", Errors.Select(t => t.description));
+                    }
+
+                    await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                    return;
+                }
+                var responseHttUserMarquesa = await repository.Get<tblUsuario>($"/api/roles/GetUserUserName?UserName={responseHpptUsuario.Response.id}");
+                var responseHttRol = await repository.Get<tblRol>($"/api/roles/GetRolCodigo?Id={responseHttUserMarquesa.Response.Id_Rol}");
+                var responseHttRolCliente = await repository.Get<List<tblDetalleRolCliente>>($"/api/clientes/GetClientesPorRol?idRol={responseHttRol.Response.Id}");
+                ClientesRol = responseHttRolCliente.Response!;
+                var responseHtt = await repository.Get<List<tblCliente>>("/api/clientes");
+                Clientes = responseHtt.Response;
+
+                foreach (var item in Clientes)
+                {
+                    foreach (var item2 in ClientesRol)
+                    {
+                        if (item.Id == item2.Id_Cliente)
+                        {
+                            ClientesAsignados.Add(item);
+                        }
+                    }
+                }
+            }
+           
+           
+            
+
+            
+
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
+    }
+
+    private async Task ClienteSeleccionado(ChangeEventArgs e)
+    {
+        try
+        {
+            ListaTipoCalculo.Clear();
+            Campos.Clear();
+            Productos.Clear();
+            ProdcutoId = 0;
+            var values = e.Value.ToString().Split('|');
+            if (values[0] == "0")
+            {
+                Productos.Clear();
+                Productos = null;
+                return;
+            }
+            if (Productos is null)
+            {
+            }
+            else
+
+            {
+                Productos.Clear();
+                NombreCliente = "";
+            }
+
+            clienteId = Convert.ToInt32(values[0]);
+            var clienteNombre = values[1];
+            NombreCliente = clienteNombre;
+            variable = e;
+
+
+            ClienteSelecc = true;
+            var responseHttProductos = await repository.Get<List<tblProducto>>($"/api/productos/ProductosCliente?cliente={clienteId}");
+            Productos = responseHttProductos.Response;
+        }
+        catch (Exception ex)
+        {
+
+            throw;
+        }
+
+    }
+
+    private async Task ComponenteSeleccionado(ChangeEventArgs e)
+    {
+        try
+        {
+            var CantidadContenedor = Configuracion.GetSection("VariableApi")["CantidadCampoContenedor"];
+            var CantidadActa = Configuracion.GetSection("VariableApi")["CantidadCampoActa"];
+            var CamposActa = CantidadActa.Split("|");
+            var CamposContenedor = CantidadContenedor.Split("|");
+            Campos.Clear();
+            CamposSeleccionados.Clear();
+            CamposDTO campo = new();
+            var valor = Convert.ToInt32(e.Value);
+            if (valor == 7)
+            {
+
+                
+
+                int contador = 1;
+                foreach (var item in CamposContenedor)
+                {
+                    CamposDTO campoAdicional = new();
+                    campoAdicional.Nombre = item;
+                    campoAdicional.Seleccionado = false;
+                    campoAdicional.orden = contador;
+                    CamposSeleccionados.Add(campoAdicional);
+                    contador++;
+                }
+            }
+            if (valor == 5)
+            {
+
+                int contador = 1;
+                foreach (var item in CamposActa)
+                {
+                    CamposDTO campoAdicional = new();
+                    campoAdicional.Nombre = item;
+                    campoAdicional.Seleccionado = false;
+                    campoAdicional.orden = contador;
+                    CamposSeleccionados.Add(campoAdicional);
+                    contador++;
+                }
+            }
+            Type tipoCampo = typeof(tblExaminandoValidacionDTO);
+            PropertyInfo[] propiedades = tipoCampo.GetProperties();
+            foreach (PropertyInfo propi in propiedades)
+            {
+                var campo1 = new CamposDTO(); // Crea una nueva instancia en cada iteración
+                var displayAttribute = propi.GetCustomAttribute<DisplayAttribute>();
+                string displayName = displayAttribute != null ? displayAttribute.Name : propi.Name;
+                campo1.Nombre = displayName;
+
+                if (valor == 7)
+                {
+
+                    foreach (var item in CamposContenedor)
+                    {
+                        if (displayName == item)
+                        {
+                            campo1.Seleccionado = true;
+                        }
+                        else
+                        {
+                            campo.Seleccionado = false;
+                        }
+                    }
+                    Campos.Add(campo1);
+
+                }
+
+                if (valor == 5)
+                {
+                    foreach (var item in CamposActa)
+                    {
+                        if (displayName == item)
+                        {
+                            campo1.Seleccionado = true;
+                        }
+                        else
+                        {
+                            campo.Seleccionado = false;
+                        }
+                    }
+                    Campos.Add(campo1);
+
+                }
+
+               
+
+
+            }
+            if (valor == 7)
+            {
+                campo.Nombre = "Código Acta";
+                campo.Seleccionado = true;
+
+
+
+                Campos.Add(campo);
+            }
+
+
+        }
+        catch (Exception ex)
+        {
+
+            throw;
+        }
+
+    }
+    private async Task ProductoSeleccionado(ChangeEventArgs e)
+    {
+        try
+        {
+            ListaTipoCalculo.Clear();
+            Campos.Clear();
+            var values = e.Value.ToString().Split('|');
+            ProdcutoId = Convert.ToInt32(values[0]);
+            ParametroIdProducto = ProdcutoId;
+            NombreProducto = values[1];
+
+            var responseHttTipoEmpaque = await repository.Get<tblTipoGrupo>("/api/productos/TipoGrupoVariable?variable=02");
+            tblTipoGrupo TipoEmpaque = responseHttTipoEmpaque.Response!;
+
+            var responseHttpTipo = await repository.Get<List<tblTipo>>($"/api/productos/Tipos?idTGrupo={TipoEmpaque.Id}");
+
+            ListaTipoCalculo = responseHttpTipo.Response!;
+
+
+
+
+        }
+        catch (Exception ex)
+        {
+
+            throw;
+        }
+
+    }
+
+    public void ToggleSeleccion(CamposDTO elemento)
+    {
+        elemento.Seleccionado = !elemento.Seleccionado;
+
+        if (elemento.Seleccionado)
+        {
+            CamposSeleccionados.Add(elemento);
+            @foreach (var item in CamposSeleccionados)
+            {
+                if (elemento.Nombre == item.Nombre)
+                {
+                    item.Seleccionado = true;
+                    item.orden = CamposSeleccionados.Count;
+                }
+            }
+
+        }
+        else
+        {
+            var i = CamposSeleccionados.FirstOrDefault(x => x.Nombre == elemento.Nombre);
+            CamposSeleccionados.Remove(i);
+
+            int cont = 1;
+            @foreach (var item in CamposSeleccionados)
+            {
+                item.orden = cont;
+                if (elemento.Nombre == item.Nombre)
+                {
+                    item.Seleccionado = false;
+
+                }
+                cont++;
+
+            }
+
+        }
+
+        StateHasChanged();
+    }
+
+    public void ToggleSeleccionPosicionUp(CamposDTO elemento)
+    {
+        int index = CamposSeleccionados.IndexOf(elemento);
+        if (index > 0)
+        {
+            CamposSeleccionados.RemoveAt(index);
+            CamposSeleccionados.Insert(index - 1, elemento);
+            RecalcularOrden();
+        }
+    }
+
+    public void ToggleSeleccionPosicionDown(CamposDTO elemento)
+    {
+        int index = CamposSeleccionados.IndexOf(elemento);
+        if (index < CamposSeleccionados.Count - 1)
+        {
+            CamposSeleccionados.RemoveAt(index);
+            CamposSeleccionados.Insert(index + 1, elemento);
+            RecalcularOrden();
+        }
+    }
+
+    private void RecalcularOrden()
+    {
+        for (int i = 0; i < CamposSeleccionados.Count; i++)
+        {
+            CamposSeleccionados[i].orden = i + 1;
+        }
+    }
+
+
+}

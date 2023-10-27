@@ -1,0 +1,80 @@
+﻿@using MarquesaReplenish.Web.Helpers;
+@inherits LayoutComponentBase
+@inject IJSRuntime js
+@inject ILoginService loginService
+@inject NavigationManager navigationManager
+@inject SweetAlertService sweetAlertService
+
+
+
+
+<AuthorizeView>
+    <Authorized>
+        <div class="page">
+            <div class="sidebar" style="background-image: linear-gradient(45deg, black, black); width: 227px;">
+                <NavMenu />
+                <div>
+                    
+                </div>
+
+            </div>
+
+            <main>
+                <div class="top-row px-4">
+                    <AuthLinks />
+                    
+                </div>
+
+                <article class="content px-4" style="position: absolute;">
+                    @Body
+                </article>
+            </main>
+        </div>
+
+    </Authorized>
+
+    <NotAuthorized>    
+        <RedirectToLogin />
+        <article class="content px-4" style="position: absolute;">
+          @Body
+        </article>
+    </NotAuthorized>
+
+</AuthorizeView>
+    
+
+@code {
+    // Componente RedirectToLogin para redirigir a la vista de inicio de sesión
+    [Inject] private NavigationManager NavigationManager { get; set; }
+    [CascadingParameter] public Task<AuthenticationState> authenticationState { get; set; }
+    public class RedirectToLogin : ComponentBase
+    {
+
+
+
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        await js.InicializarTimerInactivo(DotNetObjectReference.Create(this));
+        NavigationManager.NavigateTo("Login");
+
+    }
+
+    [JSInvokable]
+        public async Task Logout()
+        {
+            var authState = await authenticationState;
+            if (authState.User.Identity.IsAuthenticated)
+            {
+
+                var Message = "La sesión ha expirado debido a la inactividad. Inicia sesión de nuevo, por favor";
+                await sweetAlertService.FireAsync("Sesión expirada", Message, SweetAlertIcon.Error);
+                await loginService.LogoutAsync();
+                navigationManager.NavigateTo("/Login");
+                await loginService.LogoutAsync();
+                navigationManager.NavigateTo("/Login");
+            }
+
+        }
+    }
+

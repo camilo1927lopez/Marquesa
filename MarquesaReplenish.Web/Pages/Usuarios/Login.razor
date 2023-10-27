@@ -1,0 +1,306 @@
+﻿@page "/Login"
+@using System.Text;
+@using System.Threading.Tasks
+@using System.IO.Compression;
+@using MarquesaReplenish.Desk.Helpers;
+@using Microsoft.AspNetCore.Identity;
+@inject IRepository repository
+@inject SweetAlertService sweetAlertService
+@inject NavigationManager navigationManager
+@inject ILoginService loginService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@*@inject IConfiguration configuracion*@
+
+
+
+
+    <link />
+    <html>
+
+    @*<link rel="stylesheet" type="text/css" href="ruta-a-tu-archivo.css">*@
+    <style>
+        body {
+            font-family: 'Overpass', sans-serif;
+            font-weight: normal;
+            font-size: 100%;
+            color: #1b262c;
+            margin: 0;
+        }
+
+        #contenedor {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 0;
+            min-width: 94vw;
+            min-height: 90vh;
+            width: 100%;
+            height: 100%;
+        }
+
+        #central {
+            max-width: 320px;
+            width: 100%;
+        }
+
+        .titulo {
+            font-size: 250%;
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #login {
+            width: 100%;
+            padding: 50px 30px;
+            background-color: #787878;
+            -webkit-box-shadow: 0px 0px 5px 5px rgba(0,0,0,0.15);
+            -moz-box-shadow: 0px 0px 5px 5px rgba(0,0,0,0.15);
+            box-shadow: 0px 0px 5px 5px rgba(0,0,0,0.15);
+            border-radius: 3px 3px 3px 3px;
+            -moz-border-radius: 3px 3px 3px 3px;
+            -webkit-border-radius: 3px 3px 3px 3px;
+            box-sizing: border-box;
+        }
+
+            #login input {
+                font-family: 'Overpass', sans-serif;
+                font-size: 110%;
+                color: #1b262c;
+                display: block;
+                width: 100%;
+                height: 40px;
+                margin-bottom: 10px;
+                padding: 5px 5px 5px 10px;
+                box-sizing: border-box;
+                border: none;
+                border-radius: 3px 3px 3px 3px;
+                -moz-border-radius: 3px 3px 3px 3px;
+                -webkit-border-radius: 3px 3px 3px 3px;
+            }
+
+                #login input::placeholder {
+                    font-family: 'Overpass', sans-serif;
+                    color: #E4E4E4;
+                }
+
+            #login button {
+                font-family: 'Overpass', sans-serif;
+                font-size: 110%;
+                color: #000000;
+                width: 100%;
+                height: 40px;
+                border: none;
+                border-radius: 3px 3px 3px 3px;
+                -moz-border-radius: 3px 3px 3px 3px;
+                -webkit-border-radius: 3px 3px 3px 3px;
+                background-color: white;
+                margin-top: 10px;
+            }
+
+            #login input::placeholder {
+                color: #c9c9c9;
+            }
+
+            #login button:hover {
+                background-color: black;
+                color: white;
+                margin-top: 10px;
+            }
+
+        .pie-form {
+            font-size: 90%;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+            .pie-form a {
+                display: block;
+                text-decoration: none;
+                color: #000000;
+                margin-bottom: 3px;
+            }
+
+                .pie-form a:hover {
+                    color: #a5a5a5;
+                }
+
+        .inferior {
+            margin-top: 10px;
+            font-size: 90%;
+            text-align: center;
+        }
+
+            .inferior a {
+                display: block;
+                text-decoration: none;
+                color: #000000;
+                margin-bottom: 3px;
+            }
+
+                .inferior a:hover {
+                    color: #a5a5a5;
+                }
+
+    </style>
+
+    <body>
+        <div id="contenedor">
+            <div id="central">
+                @if (isLoading)
+            {
+                <div id="login">
+                    <div style="width: 260px; height: 260px; position: static;" class="spinner" />
+                </div>
+            }
+            else
+            {
+                <div id="login">
+                    <div class="titulo">
+                        MARQUESA
+                    </div>
+                    <EditForm Model="loginDTO" OnValidSubmit="LoginAsync" id="loginform">
+
+                        <InputText id="usuario" placeholder="Usuario" class="form-control" @bind-Value="@loginDTO.usuario" />
+                        <ValidationMessage For="@(() => loginDTO.usuario)" />
+
+                        <InputText id="password" placeholder="Contraseña" type="password" class="form-control" @bind-Value="@loginDTO.password" />
+                        <ValidationMessage For="@(() => loginDTO.password)" />
+
+                        <button id="submit" type="submit" title="Ingresar" name="Ingresar">Login</button>
+                    </EditForm>
+                    <div style="padding-top: 11px;position: relative;">
+                        <input id="directorioActivo" type="checkbox" style="height: 23px;position: absolute;left: -58px;top:22px" name="DirecActivo" @bind-value="@loginDTO.directorioActivo" />
+                        <label class="form-check-label" style="position: absolute; right: 50px;top:22px">Directorio Activo</label>
+                    </div>
+
+                    <div class="pie-form">
+                        <a id="recuperarPassword" style="padding-top: 30px;" href="RecoverPassword">Recuperar contraseña</a>
+                    </div>
+                </div>
+            }
+                
+
+            </div>
+        </div>
+
+    </body>
+    </html>
+
+
+    
+
+@code {
+   
+    LoginDTO loginDTO = new();
+    bool isLoading;
+    private async Task LoginAsync()
+    {
+        isLoading = true;
+        loginDTO.aplicacionId = "026767a2-a87a-4a6a-82ac-9c2619e1343e";
+        var UserTemp = loginDTO.usuario;
+        var PassTemp = loginDTO.password;
+        //Validate validate = new Validate();
+        //validate.ValidarObjecto(loginDTO);
+        loginDTO.usuario = string.IsNullOrWhiteSpace(loginDTO.usuario) ? loginDTO.usuario: await CompressString(loginDTO.usuario);
+        loginDTO.password = string.IsNullOrWhiteSpace(loginDTO.password) ? loginDTO.password : await CompressString(loginDTO.password);
+
+
+        var responseHttp = await repository.Post<LoginDTO, TokenDTO>($"{Configuracion["VariableApi:AuthenticationApi"]}/api/Accounts/Login", loginDTO);
+        loginDTO.usuario = UserTemp;
+        loginDTO.password = PassTemp;
+
+        if (responseHttp.Error)
+        {
+            string? message = await responseHttp.GetErrorMessageAsync();
+            bool comienzaConCorcheteAbierto = message.StartsWith("[");
+            bool terminaConCorcheteCerrado = message.EndsWith("]");
+
+            if (comienzaConCorcheteAbierto && terminaConCorcheteCerrado)
+            {
+                List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                message = string.Join("\n", Errors.Select(t => t.description));
+            }
+            else
+            {
+                message = "["+message+"]";
+                List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                message = string.Join("\n", Errors.Select(t => t.description));
+            }
+
+
+
+            if (message.Contains("Por favor realizar cambio de contraseña"))
+            {
+                message = "Por favor realizar cambio de contraseña";
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Warning);
+                isLoading = false;
+                navigationManager.NavigateTo($"/expiredPassword?UserName={loginDTO.usuario}");
+                return;
+                
+                
+            }
+            if (message.Contains("Ha superado el máximo número de intentos, su cuenta está bloqueada, intente de nuevo en 20 minutos."))
+            {
+                message = "Ha superado el máximo número de intentos, su cuenta está bloqueada, intente de nuevo en 20 minutos.";
+            }
+            if (message.Contains("no pertenece a la aplicación."))
+            {
+                message = "El usuario "+ loginDTO.usuario +" no se encuentra registrado.";
+            }
+            if (message.Contains("Tienes que logearte para hacer esta operación"))
+            {
+                message = "La sesión ha expirado";
+            }
+
+            if (message.Contains("El usuario no ha sido habilitado, debes de seguir las instrucciones del correo enviado para poder habilitar el usuario."))
+            {
+                message = "El usuario no ha sido habilitado, \n Debes de seguir las instrucciones del correo enviado para poder habilitar el usuario.";
+            }
+
+            if (message.Contains("El usuario '' se encuentra inhabilitado."))
+            {
+                message = "El usuario: " + loginDTO.usuario + " Se encuentra Inactivo, por favor comunicarse con su lider";
+            }
+
+            if (message.Contains("Ha superado el máximo número de intentos, su cuenta está bloqueada, intente de nuevo en 60 minutos."))
+            {
+                message = "Ha superado el máximo número de intentos, su cuenta está bloqueada, intente de nuevo en 60 minutos.";
+            }
+
+            
+            
+            
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            isLoading = false;
+            return;
+        }
+        
+        await loginService.LoginAsync(responseHttp.Response!.Token);
+        isLoading = false; 
+        
+        navigationManager.NavigateTo("/");
+    }
+
+    public async Task<string> CompressString(string text)
+    {
+        byte[] buffer = Encoding.UTF8.GetBytes(text);
+        var memoryStream = new MemoryStream();
+        using (var gZipStream = new GZipStream(memoryStream, CompressionMode.Compress, true))
+        {
+            gZipStream.Write(buffer, 0, buffer.Length);
+        }
+
+        memoryStream.Position = 0;
+
+        var compressedData = new byte[memoryStream.Length];
+        memoryStream.Read(compressedData, 0, compressedData.Length);
+
+        var gZipBuffer = new byte[compressedData.Length + 4];
+        Buffer.BlockCopy(compressedData, 0, gZipBuffer, 4, compressedData.Length);
+        Buffer.BlockCopy(BitConverter.GetBytes(buffer.Length), 0, gZipBuffer, 0, 4);
+        return Convert.ToBase64String(gZipBuffer);
+    }
+}
+

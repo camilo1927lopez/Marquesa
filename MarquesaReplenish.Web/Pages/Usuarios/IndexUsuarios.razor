@@ -1,0 +1,614 @@
+﻿@page "/Usuarios"
+@using Microsoft.AspNetCore.Authorization;
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IConfiguration Configuracion
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IRepository repository
+@inject SweetAlertService sweetAlertService
+@inject NavigationManager navigationManager
+@inject ILoginService loginService
+@attribute [Authorize]
+
+
+@if (Usuarios is null)
+{
+    <div class="spinner" />
+}
+else
+{
+    <Pagination CurrentPage="currentPage"
+                TotalPages="totalPages"
+                SelectedPage="SelectedPageAsync" />
+    <GenericList MyList="usuariosComparacion">
+        <body>
+            <div class="card">
+                <div class="card-header">
+                    <span>
+                        <i class="oi oi-list"></i> Usuarios
+                        <a class="btn btn-sm btn-primary float-end" href="Register"><i class="oi oi-plus"></i> Crear Usuario</a>
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2" style="display: flex; flex-wrap:wrap; align-items: center;">
+                        <div>
+                            <input style="width: 400px;" type="text" class="form-control" id="titulo" placeholder="Buscar Usuario..." @bind-value="Filter" />
+                        </div>
+                        <div class="mx-1">
+                            <button type="button" class="btn btn-outline-primary" @onclick="ApplyFilterAsync"><i class="oi oi-layers" /> Filtrar</button>
+                            <button type="button" class="btn btn-outline-danger" @onclick="CleanFilterAsync"><i class="oi oi-ban" /> Limpiar</button>
+                        </div>
+                    </div>
+
+                    <div style="width: 1036px; height: 290px; overflow-x: scroll; overflow-y: scroll;">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th style="font-size: 15px;">Cédula</th>
+                                    <th style="font-size: 15px;">Nombre</th>
+                                    <th style="font-size: 15px;">Apellido</th>
+                                    <th style="font-size: 15px;">Usuario</th>
+                                    <th style="font-size: 15px;">Correo</th>
+                                    <th style="font-size: 15px;">Estado</th>
+                                    <th style="font-size: 15px;">Rol</th>
+                                    <th style="font-size: 15px;">Overol</th>
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var user in Usuarios)
+                                {
+                                    <tr>
+                                        <td style="font-size: 12px;">
+                                            @user.identificacion
+                                        </td>
+                                        <td style="font-size: 12px;">
+                                            @user.nombres
+                                        </td>
+                                        <td style="font-size: 12px;">
+                                            @user.apellidos
+                                        </td>
+                                        <td style="font-size: 12px;">
+                                            @user.userName
+                                        </td>
+                                        <td style="font-size: 12px;">
+                                            @user.email
+                                        </td>
+                                        <td style="font-size: 12px;">
+                                            @if (user.state == true)
+                                            {
+                                                <p>Activo</p>
+                                            }
+                                            else
+                                            {
+                                                <p>Inactivo</p>
+
+                                            }
+                                        </td>
+                                        <td style="font-size: 12px;">
+                                            @user.rol
+                                        </td>
+                                        <td style="font-size: 12px;">
+                                            @user.Overol
+                                        </td>
+                                        <td style="font-size: 12px;">
+                                            @if (user.state == true)
+                                            {
+                                                <a href="/EditUser/@user.id" class="btn btn-dark" @onclick=@(() => Update(user.id))><i class="oi oi-pencil" /></a>
+
+                                            }
+
+                                        </td>
+                                        @if (userId != user.userName)
+                                        {
+                                            <td style="font-size: 12px;">
+                                                @if (user.state != true)
+                                                {
+                                                    <button class="btn btn-success" @onclick=@(() => State(user.id))><i class="fa-sharp fa-solid fa-check"></i></button>
+                                                }
+                                                else
+                                                {
+                                                    <button class="btn btn-danger" @onclick=@(() => State(user.id))><i class="fa-solid fa-x"></i></button>
+                                                }
+
+                                            </td>
+
+                                        }
+                                        <td style="font-size: 12px;">
+                                            @if (!string.IsNullOrEmpty(user.LockoutEnd))
+                                            {
+                                                <a  class="btn btn-success" @onclick=@(() => Desbloquear(user.id))><i class="fa-solid fa-unlock" /></a>
+
+                                            } 
+                                        </td>
+
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </body>
+    </GenericList>
+}
+
+@code {
+    public List<UserDTO>? Usuarios { get; set; }
+    public List<UserDTO>? usuariosComparacion { get; set; }
+    public List<tblUsuario>? usuariosMarquesa { get; set; }
+    public List<tblUsuario>? usuariosMarquesaFilter { get; set; }
+    private List<tblRol>? roles;
+    private List<tblRol>? rolesComparacion;
+    private List<RolesDTO>? rolesAuthenti;
+    private UserDTO UsuarioOverol = new();
+    tblUsuario UsuarioRol = new();
+    private int currentPage = 1;
+    private int totalPages;
+    private string stateString;
+    private int CantObjet = 10;
+    private bool toFeach = false;
+    private string userId;
+    private string userRole;
+    private string Appi = "026767a2-a87a-4a6a-82ac-9c2619e1343e";
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string Page { get; set; } = string.Empty;
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string Filter { get; set; } = string.Empty;
+
+    protected async override Task OnInitializedAsync()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            // Obtener el rol del usuario (asumiendo que estás utilizando roles)
+            userRole = user.FindFirst(ClaimTypes.Role)?.Value;
+        }
+
+        string UserName = user.Identity.Name;
+        if (UserName != null)
+        {
+            await LoadAsync();
+            await LoadUserMarquesa();
+        }
+        
+    }
+
+
+    private async Task LoadAsync(int page = 1)
+    {
+        
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            var Cadena = Configuracion.GetSection("VariableApi")["AuthenticationApi"];
+
+            if (user.Identity.IsAuthenticated)
+            {
+                userId = user.Identity.Name;
+            }
+
+            if (!string.IsNullOrWhiteSpace(Page))
+            {
+                page = Convert.ToInt32(Page);
+            }
+
+            string url1 = string.Empty;
+            string url2 = string.Empty;
+
+            if (string.IsNullOrEmpty(Filter))
+            {
+                url1 = $"{Cadena}/api/Accounts/GetAllUserApplication?Id={Appi}&Page={page}&RecordsNumber={CantObjet}";
+                url2 = $"{Cadena}/api/Accounts/totalPagesUserApplication?Id={Appi}&RecordsNumber={CantObjet}";
+
+            }
+            else
+            {
+                url1 = $"{Cadena}/api/Accounts/GetAllUserApplication?Id={Appi}&page={page}&RecordsNumber={CantObjet}&filter={Filter}";
+                url2 = $"{Cadena}/api/Accounts/totalPagesUserApplication?Id={Appi}&RecordsNumber={CantObjet}&filter={Filter}";
+            }
+            var responseHppt = await repository.Get<List<UserDTO>>(url1);
+            var responseHppt2 = await repository.Get<int>(url2);
+
+            Usuarios = responseHppt.Response!;
+            totalPages = responseHppt2.Response!;
+
+        }
+        catch (Exception ex)
+        {
+            if (ex.Message.Contains("TypeError: Failed to fetch"))
+            {
+                var Message = "La sesión ha expirado";
+                await sweetAlertService.FireAsync("Fallo de sesión", Message, SweetAlertIcon.Error);
+                await loginService.LogoutAsync();
+                navigationManager.NavigateTo("/Login");
+                toFeach = true;
+                return;
+            }
+            else
+            {
+                await sweetAlertService.FireAsync("Error", ex.Message, SweetAlertIcon.Error);
+            }
+
+
+
+        }
+    }
+
+    private async Task SelectedPageAsync(int page)
+    {
+        currentPage = page;
+        await LoadAsync(page);
+        await LoadUserMarquesa();
+    }
+
+    private async Task LoadUserMarquesa(int page = 1)
+    {
+        var Cadena = Configuracion.GetSection("VariableApi")["AuthenticationApi"];
+        var responseHttpMarquesa = await repository.Get<List<tblUsuario>>("/api/usuarios");
+        if (responseHttpMarquesa.Error)
+        {
+            string? message = await responseHttpMarquesa.GetErrorMessageAsync();
+            bool comienzaConCorcheteAbierto = message.StartsWith("[");
+            bool terminaConCorcheteCerrado = message.EndsWith("]");
+
+            if (comienzaConCorcheteAbierto && terminaConCorcheteCerrado)
+            {
+                List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                message = string.Join("\n", Errors.Select(t => t.description));
+            }
+            else
+            {
+                message = "[" + message + "]";
+                List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                message = string.Join("\n", Errors.Select(t => t.description));
+            }
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+        usuariosMarquesa = responseHttpMarquesa.Response;
+
+        var responseHttpRoles = await repository.Get<List<tblRol>>("/api/roles/GetRoles");
+        if (responseHttpRoles.Error)
+        {
+            var message = await responseHttpRoles.GetErrorMessageAsync();
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            if (message.Contains("Ha ocurrido un error inesperado"))
+            {
+                await loginService.LogoutAsync();
+                navigationManager.NavigateTo("/Login");
+            }
+            return;
+        }
+
+        roles = responseHttpRoles.Response;
+
+        var responseHttpAuthenticationRoles = await repository.Get<List<RolesDTO>>($"{Cadena}/api/Accounts/Roles");
+        if (responseHttpAuthenticationRoles.Error)
+        {
+            string? message = await responseHttpAuthenticationRoles.GetErrorMessageAsync();
+            bool comienzaConCorcheteAbierto = message.StartsWith("[");
+            bool terminaConCorcheteCerrado = message.EndsWith("]");
+
+            if (comienzaConCorcheteAbierto && terminaConCorcheteCerrado)
+            {
+                List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                message = string.Join("\n", Errors.Select(t => t.description));
+            }
+            else
+            {
+                message = "[" + message + "]";
+                List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                message = string.Join("\n", Errors.Select(t => t.description));
+            }
+
+            if (toFeach == false)
+            {
+                if (message.Contains("Tienes que logearte para hacer esta operación"))
+                {
+                    var Message = "La sesión ha expirado";
+                    await sweetAlertService.FireAsync("Fallo de sesión", Message, SweetAlertIcon.Error);
+                    await loginService.LogoutAsync();
+                    navigationManager.NavigateTo("/Login");
+                    return;
+                }
+                else if (message.Contains("Token Inválido"))
+                {
+                    var Message = "La sesión ha expirado, el token es invalido";
+                    await sweetAlertService.FireAsync("Fallo de sesión", Message, SweetAlertIcon.Error);
+                    await loginService.LogoutAsync();
+                    navigationManager.NavigateTo("/Login");
+                    return;
+
+                }
+                else
+                {
+                    await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                    await loginService.LogoutAsync();
+                    navigationManager.NavigateTo("/Login");
+                    return;
+                }
+
+            }
+
+
+            return;
+        }
+
+        rolesAuthenti = responseHttpAuthenticationRoles.Response;
+
+        rolesComparacion = roles.Where(item1 => rolesAuthenti.Any(item2 => item1.Codigo == item2.id)).ToList();
+
+
+        usuariosComparacion = new();
+        if (Usuarios.Count != 0)
+        {
+            foreach (var item in Usuarios)
+            {
+                var usuario = usuariosMarquesa.FirstOrDefault(t => t.Codigo == item.id.ToString());
+                if (usuario != null)
+                {
+                    var Rol = rolesComparacion.FirstOrDefault(t => t.Id == usuario.Id_Rol);
+
+                    if (usuario != null)
+                    {
+
+                        item.Id_Rol = usuario.Id_Rol;
+                        item.Overol = usuario.Overol;
+                        item.rol = Rol.Nombre;
+                    }
+                }              
+            }
+        }
+
+
+        if (Usuarios.Count == 0 && Filter != null)
+        {
+            var responseHttpMarquesaFilter = await repository.Get<List<tblUsuario>>("/api/usuarios");
+            if (responseHttpMarquesaFilter.Error)
+            {
+                string? messageFilter = await responseHttpMarquesaFilter.GetErrorMessageAsync();
+                bool comienzaConCorcheteAbierto = messageFilter.StartsWith("[");
+                bool terminaConCorcheteCerrado = messageFilter.EndsWith("]");
+
+                if (comienzaConCorcheteAbierto && terminaConCorcheteCerrado)
+                {
+                    List<ErrorDTO> ErrorsFilter = JsonSerializer.Deserialize<List<ErrorDTO>>(messageFilter);
+                    messageFilter = string.Join("\n", ErrorsFilter.Select(t => t.description));
+                }
+                else
+                {
+                    messageFilter = "[" + messageFilter + "]";
+                    List<ErrorDTO> ErrorsFilter = JsonSerializer.Deserialize<List<ErrorDTO>>(messageFilter);
+                    messageFilter = string.Join("\n", ErrorsFilter.Select(t => t.description));
+                }
+                await sweetAlertService.FireAsync("Error", messageFilter, SweetAlertIcon.Error);
+                return;
+            }
+            usuariosMarquesaFilter = responseHttpMarquesaFilter.Response;
+
+            foreach (var item in usuariosMarquesaFilter)
+            {
+                if (item.Overol == Filter)
+                {
+                    var responseUserOverol = await repository.Get<UserDTO>($"{Cadena}/api/Accounts/GetUser?userId={item.Codigo}");
+                    if (responseUserOverol.Error)
+                    {
+                        if (responseUserOverol.HttpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+                        {
+                            navigationManager.NavigateTo("/Usuarios");
+                            return;
+                        }
+
+                        string? messageError = await responseUserOverol.GetErrorMessageAsync();
+                        bool comienzaConCorcheteAbiertoMarquesa = messageError.StartsWith("[");
+                        bool terminaConCorcheteCerradoMarquesa = messageError.EndsWith("]");
+
+                        if (comienzaConCorcheteAbiertoMarquesa && terminaConCorcheteCerradoMarquesa)
+                        {
+                            List<ErrorDTO> ErrorsFilterMarquesa = JsonSerializer.Deserialize<List<ErrorDTO>>(messageError);
+                            messageError = string.Join("\n", ErrorsFilterMarquesa.Select(t => t.description));
+
+                        }
+                        else
+                        {
+                            messageError = "[" + messageError + "]";
+                            List<ErrorDTO> ErrorsFilterMarquesa = JsonSerializer.Deserialize<List<ErrorDTO>>(messageError);
+                            messageError = string.Join("\n", ErrorsFilterMarquesa.Select(t => t.description));
+                        }
+                        if (messageError.Contains("Value cannot be null"))
+                        {
+                            return;
+                        }
+                        await sweetAlertService.FireAsync("Error", messageError, SweetAlertIcon.Error);
+                        return;
+                        
+                    }
+                    UsuarioOverol = responseUserOverol.Response;
+
+                    var responseHttpRolUser = await repository.Get<tblUsuario>($"/api/usuarios/GetUser?Id={item.Codigo}");
+                    if (responseHttpRolUser.Error)
+                    {
+                        string? messageFilterMarquesa = await responseHttpMarquesaFilter.GetErrorMessageAsync();
+                        bool comienzaConCorcheteAbiertoMarquesa = messageFilterMarquesa.StartsWith("[");
+                        bool terminaConCorcheteCerradoMarquesa = messageFilterMarquesa.EndsWith("]");
+
+                        if (comienzaConCorcheteAbiertoMarquesa && terminaConCorcheteCerradoMarquesa)
+                        {
+                            List<ErrorDTO> ErrorsFilterMarquesa = JsonSerializer.Deserialize<List<ErrorDTO>>(messageFilterMarquesa);
+                            messageFilterMarquesa = string.Join("\n", ErrorsFilterMarquesa.Select(t => t.description));
+                        }
+                        else
+                        {
+                            messageFilterMarquesa = "[" + messageFilterMarquesa + "]";
+                            List<ErrorDTO> ErrorsFilterMarquesa = JsonSerializer.Deserialize<List<ErrorDTO>>(messageFilterMarquesa);
+                            messageFilterMarquesa = string.Join("\n", ErrorsFilterMarquesa.Select(t => t.description));
+                        }
+                        await sweetAlertService.FireAsync("Error", messageFilterMarquesa, SweetAlertIcon.Error);
+                        return;
+                    }
+
+                    UsuarioRol = responseHttpRolUser.Response;
+                    var RolMarquesa = rolesComparacion.FirstOrDefault(t => t.Id == UsuarioRol.Id_Rol);
+
+                    UsuarioOverol.Id_Rol = UsuarioRol.Id_Rol;
+                    UsuarioOverol.Overol = UsuarioRol.Overol;
+                    UsuarioOverol.rol = RolMarquesa.Nombre;
+
+                    Usuarios.Add(UsuarioOverol);
+
+
+
+                }
+            }
+
+        }
+
+    }
+
+    private async Task Update(Guid idUsuario)
+    {
+        //NavigationManager.NavigateTo($"/otra-pagina/{idUsuario}");
+    }
+
+    private async Task State(Guid idUsuario)
+    {
+        var result = await sweetAlertService.FireAsync(new SweetAlertOptions
+            {
+                Title = "Confirmación",
+                Text = "¿Estás seguro de que quieres cambiar el estado de actividad del usuario?",
+                Icon = SweetAlertIcon.Question,
+                ShowCancelButton = true
+            });
+
+        var confirm = string.IsNullOrEmpty(result.Value);
+
+        if (confirm)
+        {
+            return;
+        }
+
+        List<StateUserDTO> user = new List<StateUserDTO> { new StateUserDTO { userId = idUsuario } };
+
+
+        
+        var responseHTTP = await repository.Post($"{Configuracion["VariableApi:AuthenticationApi"]}/api/Accounts/ChangeStatus", user);
+
+        if (responseHTTP.Error)
+        {
+            if (responseHTTP.HttpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                
+                navigationManager.NavigateTo("/Usuarios");
+            }
+            else
+            {
+                string? mensajeError = await responseHTTP.GetErrorMessageAsync();
+                bool comienzaConCorcheteAbierto = mensajeError.StartsWith("[");
+                bool terminaConCorcheteCerrado = mensajeError.EndsWith("]");
+
+                if (comienzaConCorcheteAbierto && terminaConCorcheteCerrado)
+                {
+                    List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(mensajeError);
+                    mensajeError = string.Join("\n", Errors.Select(t => t.description));
+                }
+                else
+                {
+                    mensajeError = "[" + mensajeError + "]";
+                    List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(mensajeError);
+                    mensajeError = string.Join("\n", Errors.Select(t => t.description));
+                }
+                await sweetAlertService.FireAsync("Error", mensajeError, SweetAlertIcon.Error);
+            }
+        }
+        else
+        {
+            
+            await LoadAsync(currentPage);
+            await LoadUserMarquesa(currentPage);
+
+        }
+    }
+
+    private async Task Desbloquear(Guid idUsuario)
+    {
+        var Cadena = Configuracion.GetSection("VariableApi")["AuthenticationApi"];
+        var result = await sweetAlertService.FireAsync(new SweetAlertOptions
+            {
+                Title = "Confirmación",
+                Text = "¿Estás seguro de que quieres desbloquear este usuario?",
+                Icon = SweetAlertIcon.Question,
+                ShowCancelButton = true
+            });
+
+        var confirm = string.IsNullOrEmpty(result.Value);
+
+        if (confirm)
+        {
+            return;
+        }
+
+        List<StateUserDTO> user = new List<StateUserDTO> { new StateUserDTO { userId = idUsuario } };
+
+
+
+        var responseHTTP = await repository.Post($"{Cadena}/api/Accounts/UnlockedUser", user);
+
+        if (responseHTTP.Error)
+        {
+            if (responseHTTP.HttpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                navigationManager.NavigateTo("/Usuarios");
+            }
+            else
+            {
+                string? message = await responseHTTP.GetErrorMessageAsync();
+                bool comienzaConCorcheteAbierto = message.StartsWith("[");
+                bool terminaConCorcheteCerrado = message.EndsWith("]");
+
+                if (comienzaConCorcheteAbierto && terminaConCorcheteCerrado)
+                {
+                    List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                    message = string.Join("\n", Errors.Select(t => t.description));
+                }
+                else
+                {
+                    message = "[" + message + "]";
+                    List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                    message = string.Join("\n", Errors.Select(t => t.description));
+                }
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+        }
+        else
+        {
+            await sweetAlertService.FireAsync("Proceso terminado", "El Usuario fue desbloqueado con éxito", SweetAlertIcon.Success);
+            await LoadAsync(currentPage);
+            await LoadUserMarquesa(currentPage);
+
+        }
+    }
+
+
+
+    private async Task CleanFilterAsync()
+    {
+        Filter = string.Empty;
+        await ApplyFilterAsync();
+    }
+
+    private async Task ApplyFilterAsync()
+    {
+        int page = 1;
+        await LoadAsync();
+        await LoadUserMarquesa(page);
+        await SelectedPageAsync(page);
+    }
+}

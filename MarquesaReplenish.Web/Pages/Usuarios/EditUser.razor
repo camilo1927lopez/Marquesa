@@ -1,0 +1,341 @@
+﻿@page "/EditUser/{idUser}"
+@inject IRepository repository
+@inject SweetAlertService sweetAlertService
+@inject NavigationManager navigationManager
+@inject ILoginService loginService
+@attribute [Authorize]
+
+@if (rolesComparacion is null)
+{
+    <div class="spinner" />
+}
+else
+{
+    <h3>Editar Usuario</h3>
+    <EditForm Model="UserEditDTO" OnValidSubmit="SaveUserAsync">
+        <DataAnnotationsValidator />
+        <div class="row">
+            <div class="col-6">
+                <div class="mb-3">
+                    <label>Nombres*:</label>
+                    <div>
+                        <InputText id="Nombres" class="form-control" @bind-Value="@UserEditDTO.nombres" />
+                        <ValidationMessage For="@(() => UserEditDTO.nombres)" />
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label>Apellidos*:</label>
+                    <div>
+                        <InputText id="Apellidos" class="form-control" @bind-Value="@UserEditDTO.apellidos" />
+                        <ValidationMessage For="@(() => UserEditDTO.apellidos)" />
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label>Correo Electrónico*:</label>
+                    <div>
+                        <InputText id="email" class="form-control" @bind-Value="@UserEditDTO.email" />
+                        <ValidationMessage For="@(() => UserEditDTO.email)" />
+                    </div>
+                </div>
+                @*<div class="mb-3">
+                    <label>Teléfono:</label>
+                    <div>
+                        <InputText id="telefono" class="form-control" @bind-Value="@UserEditDTO.telefono" />
+                        <ValidationMessage For="@(() => UserEditDTO.telefono)" />
+                    </div>
+                </div>*@
+                <div class="mb-3">
+                    <label>Área*:</label>
+                    <select id="area" class="form-select" @bind="@UserEditDTO.areaId">
+                        <option value="0">-- Seleccione un area --</option>
+                        @if (areas is not null)
+                        {
+                            @foreach (var area in areas)
+                            {
+                                if (UserEditDTO.areaId == area.id)
+                                {
+                                    <option value="@area.id"selected>@area.nombre</option>
+                                    continue;
+                                }
+                                <option value="@area.id">@area.nombre</option>
+                            }
+                        }
+                    </select>
+                    <ValidationMessage For="@(() => UserEditDTO.areaId)" />
+                </div>
+            </div>
+            <div class="col-6">
+             
+                <div class="mb-3">
+                    <label>Rol*:</label>
+                    <select id="rol" class="form-select" @bind="@UserEditDTO.Id_Rol">
+                        <option value="0">-- Seleccione un rol --</option>
+
+                        @if (roles is not null)
+                        {
+                            @foreach (var rol in rolesComparacion)
+                            {
+                                if (UserEditDTO.Id_Rol == rol.Id.ToString())
+                                {
+                                    <option value="@rol.Id" selected>@rol.Nombre</option>
+                                    continue;
+                                }
+                                <option value="@rol.Id">@rol.Nombre</option>
+                            }
+                        }
+                    </select>
+                    <ValidationMessage For="@(() => UserEditDTO.Id_Rol)" />
+                </div>
+
+                <div class="mb-3">
+                    <label>Overol:</label>
+                    <div>
+                        <InputText id="overol" class="form-control" @bind-Value="@UserEditDTO.Overol" />
+                        <ValidationMessage For="@(() => UserEditDTO.Overol)" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button id="atras" class="btn btn-danger" onclick="@Atras">Atrás</button>
+        <button id="editar" class="btn btn-primary" type="submit">Editar</button>       
+    </EditForm>
+
+}
+
+@code {
+    UserDTO userDTO = new();
+    UserEditDTO UserEditDTO = new();
+    tblUsuario UserEditMarquesaDTO = new();
+    UserEditMarquesaDTO UserEditMarquesaUpdateDTOP = new();
+    private List<tblRol>? roles;
+    private List<tblRol>? rolesComparacion;
+    private List<RolesDTO>? rolesAuthenti;
+    private List<AreasDTO>? areas;
+    tblUsuario UsuarioRol = new();
+    tblRol Rol = new();
+    tblRol RolMarquesa = new();
+    [Parameter]
+    public string idUser { get; set; }
+
+
+    public void Atras()
+    {
+        navigationManager.NavigateTo("Usuarios");
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRolesAsync();
+        await LoadAreaIdAsync();
+        await LoadUserAsyc();
+        await LoadRolUser();
+
+    }
+
+
+    private async Task LoadUserAsyc()
+    {
+        var responseHTTP = await repository.Get<UserDTO>($"{Configuracion["VariableApi:AuthenticationApi"]}/api/Accounts/GetUser?userId={idUser}");
+        if (responseHTTP.Error)
+        {
+            if (responseHTTP.HttpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                navigationManager.NavigateTo("/Usuarios");
+                return;
+            }
+            string? message = await responseHTTP.GetErrorMessageAsync();
+            bool comienzaConCorcheteAbierto = message.StartsWith("[");
+            bool terminaConCorcheteCerrado = message.EndsWith("]");
+
+            if (comienzaConCorcheteAbierto && terminaConCorcheteCerrado)
+            {
+                List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                message = string.Join("\n", Errors.Select(t => t.description));
+            }
+            else
+            {
+                message = "[" + message + "]";
+                List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                message = string.Join("\n", Errors.Select(t => t.description));
+            }
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+        userDTO = responseHTTP.Response;
+    }
+    private async Task LoadRolUser()
+    {
+        var responseHttpRolUser = await repository.Get<tblUsuario>($"/api/usuarios/GetUser?Id={idUser}");
+        if (responseHttpRolUser.Error)
+        {
+            var message = await responseHttpRolUser.GetErrorMessageAsync();
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+
+        UsuarioRol = responseHttpRolUser.Response;
+
+        var responseHttpTblRol = await repository.Get<tblRol>($"/api/roles/GetRol?Id={Convert.ToInt32(UsuarioRol.Id_Rol)}");
+        if (responseHttpTblRol.Error)
+        {
+            var message = await responseHttpTblRol.GetErrorMessageAsync();
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+
+        RolMarquesa = responseHttpTblRol.Response;
+        UserEditDTO.Id_Rol = RolMarquesa.Id.ToString();
+        UserEditDTO.rol = RolMarquesa.Codigo;
+        UserEditDTO.Overol = UsuarioRol.Overol;
+        //UserEditDTO.telefono = userDTO.phoneNumber;
+        UserEditDTO.aplicacionId = "026767a2-a87a-4a6a-82ac-9c2619e1343e";
+        UserEditDTO.nombres = userDTO.nombres;
+        UserEditDTO.apellidos = userDTO.apellidos;
+        UserEditDTO.email = userDTO.email;
+        UserEditDTO.areaId = userDTO.area.id;
+
+    }
+
+
+
+    private async Task LoadRolesAsync()
+    {
+        var responseHttp = await repository.Get<List<tblRol>>("/api/roles/GetRoles");
+        if (responseHttp.Error)
+        {
+            var message = await responseHttp.GetErrorMessageAsync();
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+
+        roles = responseHttp.Response;
+
+        var responseHttpAuthentication = await repository.Get<List<RolesDTO>>($"{Configuracion["VariableApi:AuthenticationApi"]}/api/Accounts/Roles");
+        if (responseHttpAuthentication.Error)
+        {
+            string? message = await responseHttpAuthentication.GetErrorMessageAsync();
+            bool comienzaConCorcheteAbierto = message.StartsWith("[");
+            bool terminaConCorcheteCerrado = message.EndsWith("]");
+
+            if (comienzaConCorcheteAbierto && terminaConCorcheteCerrado)
+            {
+                List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                message = string.Join("\n", Errors.Select(t => t.description));
+            }
+            else
+            {
+                message = "[" + message + "]";
+                List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                message = string.Join("\n", Errors.Select(t => t.description));
+            }
+
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+
+        rolesAuthenti = responseHttpAuthentication.Response;
+
+        rolesComparacion = roles.Where(item1 => rolesAuthenti.Any(item2 => item1.Codigo == item2.id)).ToList();
+
+        //foreach (var item in roles)
+        //{
+        //    foreach (var item2 in rolesAuthenti)
+        //    {
+        //        if (item.Codigo == item2.id)
+        //        {
+        //            rolesComparacion.Add(item);
+        //        }
+
+        //    }
+        //}
+    }
+
+
+
+    private async Task SaveUserAsync()
+    {
+        bool EspacioInicialNombre = char.IsWhiteSpace(UserEditDTO.nombres[0]);
+        bool EspacioFinalNombre = char.IsWhiteSpace(UserEditDTO.nombres[UserEditDTO.nombres.Length - 1]);
+
+        if (EspacioInicialNombre || EspacioFinalNombre)
+        {
+            await sweetAlertService.FireAsync("Error", "Los nombres no pueden tener espacios en blanco al inicio o al final", SweetAlertIcon.Error);
+            return;
+        }
+
+        bool EspacioInicialApellido = char.IsWhiteSpace(UserEditDTO.apellidos[0]);
+        bool EspacioFinalApellido = char.IsWhiteSpace(UserEditDTO.apellidos[UserEditDTO.apellidos.Length - 1]);
+
+        if (EspacioInicialApellido || EspacioFinalApellido)
+        {
+            await sweetAlertService.FireAsync("Error", "Los apellidos no pueden tener espacios en blanco al inicio o al final", SweetAlertIcon.Error);
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(UserEditDTO.Overol))
+        {
+            bool EspacioInicialOverol = char.IsWhiteSpace(UserEditDTO.Overol[0]);
+            bool EspacioFinalOverol = char.IsWhiteSpace(UserEditDTO.Overol[UserEditDTO.Overol.Length - 1]);
+
+            if (EspacioInicialOverol || EspacioFinalOverol)
+            {
+                await sweetAlertService.FireAsync("Error", "El overol no puede tener espacios en blanco al inicio o al final", SweetAlertIcon.Error);
+                return;
+            }
+        }
+
+        var responseHttp = await repository.Put<UserEditDTO>($"{Configuracion["VariableApi:AuthenticationApi"]}/api/Accounts/UpdateUser?userId={idUser}", UserEditDTO!);
+        if (responseHttp.Error)
+        {
+            var message = await responseHttp.GetErrorMessageAsync();
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+
+        var responseHttpMarquea = await repository.Get<tblUsuario>($"/api/usuarios/GetUser?Id={idUser}");
+        if (responseHttpMarquea.Error)
+        {
+            var message = await responseHttpMarquea.GetErrorMessageAsync();
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+        UserEditMarquesaDTO = responseHttpMarquea.Response;
+
+        UserEditMarquesaUpdateDTOP.Overol = UserEditDTO.Overol;
+        UserEditMarquesaUpdateDTOP.Id_Rol = Convert.ToInt32(UserEditDTO.Id_Rol);
+        UserEditMarquesaUpdateDTOP.Estado = UserEditMarquesaDTO.Estado;
+        UserEditMarquesaUpdateDTOP.FechaCreacion = UserEditMarquesaDTO.FechaCreacion;
+        UserEditMarquesaUpdateDTOP.Codigo = UserEditMarquesaDTO.Codigo;
+        UserEditMarquesaUpdateDTOP.Id = UserEditMarquesaDTO.Id;
+
+
+        var responseHttpMarqueaEdit = await repository.Post<UserEditMarquesaDTO>("/api/usuarios/UpdateUser", UserEditMarquesaUpdateDTOP!);
+        if (responseHttpMarqueaEdit.Error)
+        {
+            var message = await responseHttpMarqueaEdit.GetErrorMessageAsync();
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+
+        navigationManager.NavigateTo("/Usuarios");
+        await sweetAlertService.FireAsync("Proceso terminado", "El Usuario fue editado con éxito", SweetAlertIcon.Success);
+
+    }
+
+    private async Task LoadAreaIdAsync()
+    {
+        var responseHttp = await repository.Get<List<AreasDTO>>($"{Configuracion["VariableApi:AuthenticationApi"]}/api/Areas/GetAll");
+        if (responseHttp.Error)
+        {
+            var message = await responseHttp.GetErrorMessageAsync();
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+
+        areas = responseHttp.Response;
+    }
+
+
+}
+

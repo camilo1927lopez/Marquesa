@@ -1,0 +1,261 @@
+﻿@page "/CrearAdicional/{Cadena}"
+@using Microsoft.AspNetCore.Authorization;
+@using SixLabors.ImageSharp;
+@using SixLabors.ImageSharp.Formats;
+@using SixLabors.ImageSharp.Processing;
+@using System.Security.Claims;
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IRepository repository
+@inject SweetAlertService sweetAlertService
+@inject NavigationManager navigationManager
+@inject ILoginService loginService
+@attribute [Authorize]
+
+
+@if (activar == true)
+{
+    <div class="spinner" />
+}
+else
+{
+    <h3>Crear Adicional [Cliente:@NombreCliente]-[Producto:@NombreProducto]</h3>
+    <EditForm Model="Adicional" OnValidSubmit="CreateAdicionalAsync">
+        <DataAnnotationsValidator />
+        <h5>Campo obligatorio *</h5>
+        <div class="row">
+            <div class="col-6">
+                <div class="mb-3">
+                    <label style="margin-bottom: 10px;">Nombre*:</label>
+                    <div style="width: 260px;">
+                        <InputText id="Nombre" class="form-control" @bind-Value="@Adicional.Nombre" />
+                        <ValidationMessage For="@(() => Adicional.Nombre)" />
+                    </div>
+                </div>
+                
+                @if (Adicional.Id_Tipo == 9)
+            {
+                    <div class="mb-3">
+                        <label style="margin-bottom: 10px;">Prefijo*:</label>
+                        <div style="width: 260px;">
+                            <InputText id="Prefijo" class="form-control" @bind-Value="@Adicional.Prefijo" />
+                            <ValidationMessage For="@(() => Adicional.Prefijo)" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label style="margin-bottom: 10px;">Consecutivo Inicial*:</label>
+                        <div style="width: 260px;">
+                            <InputNumber id="ConsecutivoInicial" class="form-control" @bind-Value="@Adicional.ConsecutivoInicial" />
+                            <ValidationMessage For="@(() => Adicional.ConsecutivoInicial)" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label style="margin-bottom: 10px;">Máscara*:</label>
+                        <div style="width: 260px;">
+                            <InputText id="Mascara" class="form-control" @bind-Value="@Adicional.Mascara" />
+                            <ValidationMessage For="@(() => Adicional.Mascara)" />
+                        </div>
+                    </div>
+                }
+
+                @if (Adicional.Id_Tipo == 8)
+            {
+                    <div class="mb-3">
+                        <label style="margin-bottom: 10px;">Valor fijo*:</label>
+                        <div style="width: 260px;">
+                            <InputText id="ValorFijo" class="form-control" @bind-Value="@Adicional.ValorFijo" />
+                            <ValidationMessage For="@(() => Adicional.ValorFijo)" />
+                        </div>
+                    </div>
+
+                }
+                
+                
+                <div class="mb-3">
+                    <label style="margin-bottom: 10px;">¿Aplica para todas las sesiones?</label>
+                    <div style="width: 260px;">
+                        <InputCheckbox id="TodasSesiones" @bind-Value="@Adicional.TodasSesiones" />
+                        <ValidationMessage For="@(() => Adicional.TodasSesiones)" />
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-6">
+                <div class="mb-3">
+                    <label style="margin-bottom: 10px;width: 200px;">Tipo Dato*:</label>
+                    <select id="Tipo" class="form-select" @bind="Adicional.Id_Tipo" style="width: 260px;">
+                        <option value="0">-- Seleccione un Tipo de dato --</option>
+                        @if (Tipo is not null)
+                        {
+                            @foreach (var tipo in Tipo)
+                            {
+                                <option value="@tipo.Id">@tipo.Nombre</option>
+                            }
+                        }
+                    </select>
+                    <ValidationMessage For="@(() => Adicional.Id_Tipo)" />
+                </div>
+
+            </div>
+        </div>
+        <button id="atras" class="btn btn-danger" onclick="@Atras">Atrás</button>
+        <button id="registrar" class="btn btn-primary" type="submit">Registrar</button>
+
+    </EditForm>
+    
+}
+@code {
+
+    bool activar = false;
+    public List<tblTipo> Tipo = new();
+    public tblTipoGrupo TipoGrupo = new();
+    tblAdicionales Adicional = new();
+    string idCliente;
+    string NombreCliente;
+    string idProducto;
+    string NombreProducto;
+    private string userRole;
+
+    [Parameter]
+    public string Cadena { get; set; }
+    protected async override Task OnInitializedAsync()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            // Obtener el rol del usuario (asumiendo que estás utilizando roles)
+            userRole = user.FindFirst(ClaimTypes.Role)?.Value;
+        }
+
+        string UserName = user.Identity.Name;
+        if (UserName != null)
+        {
+            await CargaDeDatos();
+        }
+        
+    }
+
+    private async Task CargaDeDatos()
+    {
+        var CadenaValores = Cadena.Split(";");
+        idCliente = CadenaValores[0];
+        NombreCliente = CadenaValores[1];
+        idProducto = CadenaValores[2];
+        NombreProducto = CadenaValores[3];
+
+        var responseHttTipoGrupo = await repository.Get<tblTipoGrupo>($"/api/adicionales/TipoGrupo");
+        TipoGrupo = responseHttTipoGrupo.Response!;
+
+        var responseHttTipo = await repository.Get<List<tblTipo>>($"/api/adicionales/Tipo?id={TipoGrupo.Id}");
+        Tipo = responseHttTipo.Response!;
+    }
+
+    private async Task CreateAdicionalAsync()
+    {
+
+        if (Adicional.Id_Tipo == 8)
+        {
+            if (Adicional.ValorFijo == null)
+            {
+                var message = "El valor fijo es obligatorio para el tipo de dato: Fijo";
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+        }
+
+        if (Adicional.Id_Tipo == 9)
+        {
+            if (Adicional.Prefijo == null && Adicional.ConsecutivoInicial == null && Adicional.Mascara == null)
+            {
+                var message = "El prefijo, Consecutivo Inicial y Máscara son obligatorios para el tipo de dato: Consecutivo";
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+
+            if (Adicional.Prefijo == null && Adicional.ConsecutivoInicial == null)
+            {
+                var message = "El prefijo y Consecutivo Inicial son obligatorios para el tipo de dato: Consecutivo";
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+
+            if (Adicional.Prefijo == null && Adicional.Mascara == null)
+            {
+                var message = "El prefijo y la Máscara son obligatorios para el tipo de dato: Consecutivo";
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+
+            if (Adicional.Mascara == null && Adicional.ConsecutivoInicial == null)
+            {
+                var message = "La Máscara y el Consecutivo Inicial son obligatorios para el tipo de dato: Consecutivo";
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+            if (Adicional.Prefijo == null)
+            {
+                var message = "El Prefijo es obligatorio para el tipo de dato: Consecutivo";
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+
+            if (Adicional.Mascara == null)
+            {
+                var message = "La Máscara es obligatoria para el tipo de dato: Consecutivo";
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+
+            if (Adicional.ConsecutivoInicial == null)
+            {
+                var message = "El Consecutivo Inicial es obligatorio para el tipo de dato: Consecutivo";
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+        }
+
+        Adicional.Id_producto = Convert.ToInt32(idProducto);
+        Adicional.Id_producto = Convert.ToInt32(idProducto);
+        Adicional.FechaCreacion = DateTime.Now;
+        Adicional.Sincronizar = true;
+        Adicional.Estado = true;
+
+        if (Adicional.Id_Tipo == 9)
+        {
+            Adicional.ValorFijo = null;
+        }
+
+        if (Adicional.Id_Tipo == 8)
+        {
+            Adicional.Prefijo = null;
+            Adicional.ConsecutivoInicial = null;
+            Adicional.Mascara = null;
+        }
+
+        var responseHttpMarquesa = await repository.Post("/api/adicionales/CrearAdicional", Adicional);
+
+        if (responseHttpMarquesa.Error)
+        {
+            var message = await responseHttpMarquesa.GetErrorMessageAsync();
+            if (message.Contains("ya existe."))
+            {
+                message = "El Adicional '" + Adicional.Nombre + "' ya existe";
+            }
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+
+        var valor = $"{idCliente};{NombreCliente};{idProducto};{NombreProducto}";
+        navigationManager.NavigateTo($"/adicionales/{valor}");
+        await sweetAlertService.FireAsync("Proceso terminado", "El adicional fue creado con éxito", SweetAlertIcon.Success);
+
+    }
+
+    public void Atras()
+    {
+        int valor = 0;
+        navigationManager.NavigateTo($"/Adicionales/{valor}");
+    }
+
+}

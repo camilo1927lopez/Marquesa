@@ -1,0 +1,130 @@
+﻿@page "/CrearPoblacion/{Cadena}"
+@using Microsoft.AspNetCore.Authorization;
+@using SixLabors.ImageSharp;
+@using SixLabors.ImageSharp.Formats;
+@using SixLabors.ImageSharp.Processing;
+@inject IRepository repository
+@inject SweetAlertService sweetAlertService
+@inject NavigationManager navigationManager
+@inject ILoginService loginService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using System.Security.Claims;
+@attribute [Authorize]
+
+
+@if (activar == true)
+{
+    <div class="spinner" />
+}
+else
+{
+    <h3>Crear Población [Cliente:@NombreCliente]-[Producto:@NombreProducto]</h3>
+    <EditForm Model="Poblacion" OnValidSubmit="CreatePoblacionAsync">
+        <DataAnnotationsValidator />
+        <h5>Campo obligatorio *</h5>
+        <div class="row">
+            <div class="col-6">
+                <div class="mb-3">
+                    <label style="margin-bottom: 10px;">Nombre*:</label>
+                    <div style="width: 260px;">
+                        <InputText id="Nombre" class="form-control" @bind-Value="@Poblacion.Nombre" oninput="this.value = this.value.toUpperCase()" />
+                        <ValidationMessage For="@(() => Poblacion.Nombre)" />
+                    </div>
+                </div>
+                 <div class="mb-3">
+                    <label style="margin-bottom: 10px;">¿Es población adicional?</label>
+                    <div style="width: 260px;">
+                        <InputCheckbox id="Adicional" @bind-Value="@Poblacion.Adicional" />
+                        <ValidationMessage For="@(() => Poblacion.Adicional)" />
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label style="margin-bottom: 10px;">¿Es intérpetre?</label>
+                    <div style="width: 260px;">
+                        <InputCheckbox id="Intérprete" @bind-Value="@Poblacion.Interprete" />
+                        <ValidationMessage For="@(() => Poblacion.Interprete)" />
+                    </div>
+                </div>
+               
+            </div>
+        </div>
+        <button id="atras" class="btn btn-danger" onclick="@Atras">Atrás</button>
+        <button id="registrar" class="btn btn-primary" type="submit">Registrar</button>
+
+    </EditForm>
+}
+
+@code {
+
+    bool activar = false;
+    tblPoblacion Poblacion = new();
+    string idCliente;
+    string NombreCliente;
+    string idProducto;
+    string NombreProducto;
+    private string userRole;
+
+    [Parameter]
+    public string Cadena { get; set; }
+    protected async override Task OnInitializedAsync()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            // Obtener el rol del usuario (asumiendo que estás utilizando roles)
+            userRole = user.FindFirst(ClaimTypes.Role)?.Value;
+        }
+
+        string UserName = user.Identity.Name;
+        if (UserName != null)
+        {
+            await CargaDeDatos();
+        }
+    }
+
+    private async Task CargaDeDatos()
+    {
+        var CadenaValores = Cadena.Split(";");
+        idCliente = CadenaValores[0];
+        NombreCliente = CadenaValores[1];
+        idProducto = CadenaValores[2];
+        NombreProducto = CadenaValores[3];
+    }
+
+    private async Task CreatePoblacionAsync()
+    {
+        Poblacion.Id_producto = Convert.ToInt32(idProducto);
+        Poblacion.InicioActa = 1000;
+        Poblacion.InicioContenedorOCaja = 1000;
+        Poblacion.FechaCreacion = DateTime.Now;
+        Poblacion.Estado = true;
+        Poblacion.Sincronizar = true;
+
+        var responseHttpPoblacion = await repository.Post("/api/poblacion/CrearPoblacion", Poblacion);
+
+        if (responseHttpPoblacion.Error)
+        {
+            var message = await responseHttpPoblacion.GetErrorMessageAsync();
+            if (message.Contains("Ya existe"))
+            {
+                message = $"Para el cliente ({NombreCliente}) y producto ({NombreProducto}) ya existe la población {Poblacion.Nombre}";
+            }
+
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+
+        var valor = $"{idCliente};{NombreCliente};{idProducto};{NombreProducto}";
+        navigationManager.NavigateTo($"/Poblacion/{valor}");
+        await sweetAlertService.FireAsync("Proceso terminado", "La Población fue creada con éxito", SweetAlertIcon.Success);
+
+    }
+    public void Atras()
+    {
+        int valor = 0;
+        navigationManager.NavigateTo($"/Poblacion/{valor}");
+    }
+
+}

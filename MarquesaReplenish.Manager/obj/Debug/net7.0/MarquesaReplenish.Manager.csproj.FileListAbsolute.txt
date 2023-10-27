@@ -1,0 +1,12 @@
+D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.Manager\bin\Debug\net7.0\MarquesaReplenish.Manager.deps.json
+D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.Manager\bin\Debug\net7.0\MarquesaReplenish.Manager.dll
+D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.Manager\bin\Debug\net7.0\MarquesaReplenish.Manager.pdb
+D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.Manager\obj\Debug\net7.0\MarquesaReplenish.Manager.csproj.AssemblyReference.cache
+D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.Manager\obj\Debug\net7.0\MarquesaReplenish.Manager.GeneratedMSBuildEditorConfig.editorconfig
+D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.Manager\obj\Debug\net7.0\MarquesaReplenish.Manager.AssemblyInfoInputs.cache
+D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.Manager\obj\Debug\net7.0\MarquesaReplenish.Manager.AssemblyInfo.cs
+D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.Manager\obj\Debug\net7.0\MarquesaReplenish.Manager.csproj.CoreCompileInputs.cache
+D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.Manager\obj\Debug\net7.0\MarquesaReplenish.Manager.dll
+D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.Manager\obj\Debug\net7.0\refint\MarquesaReplenish.Manager.dll
+D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.Manager\obj\Debug\net7.0\MarquesaReplenish.Manager.pdb
+D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.Manager\obj\Debug\net7.0\ref\MarquesaReplenish.Manager.dll

@@ -1,0 +1,525 @@
+﻿@page "/Productos/{valor}"
+@using Microsoft.AspNetCore.Authorization;
+@using System.Drawing;
+@using System.IO;
+@using System.Security.Claims;
+@inject IRepository repository
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject SweetAlertService sweetAlertService
+@inject NavigationManager navigationManager
+@inject ILoginService loginService
+@using System.Threading.Tasks
+@using System.Timers
+@attribute [Authorize]
+
+
+@if (Clientes is null)
+{
+    <div class="spinner" />
+}
+else
+{
+    <Pagination CurrentPage="currentPage"
+                TotalPages="totalPages"
+                SelectedPage="SelectedPageAsync" />
+                <GenericList MyList="Productos">
+
+        <h3>Productos</h3>
+        
+        <body>
+            <div class="card">
+                <div class="card-header">
+                    <div class="mb-3">
+                        <label>Cliente:</label>
+                        <select id="cliente" class="form-select" @onchange="ClienteSeleccionado">
+                            <option value="0">-- Seleccione un cliente --</option>
+                            @if (ClientesAsignados is not null)
+                            {
+                                @foreach (var cliente in ClientesAsignados)
+                                {
+                                    if (cliente.Id == ParametroIdCLiente)
+                                    {
+                                        <option value="@($"{cliente.Id}|{cliente.Nombre}")" selected>@cliente.Nombre</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@($"{cliente.Id}|{cliente.Nombre}")">@cliente.Nombre</option>
+                                        
+                                    }
+                                
+
+                                }
+                            }
+                        </select>
+                    </div>
+                    <span>
+                            <i class="oi oi-list"></i> Productos
+                    @if (ClienteSelecc == true)
+                    {
+                            if ((crearProducto == null || crearProducto.Length > 1) && ParametroIdCLiente != 0)
+                            {
+                                crearProducto = $"{ParametroIdCLiente}-{NombreCliente}";
+                            }
+                            <a id="CrearProducto" class="btn btn-sm btn-primary float-end" href="/CrearProducto/@crearProducto"><i class="oi oi-plus"></i> Crear Producto</a>
+                        
+                    }
+                    </span>
+                    
+                </div>
+
+                <div class="card-body">
+                    <div class="mb-2" style="display: flex; flex-wrap:wrap; align-items: center;">
+                        <div>
+                            <input style="width: 400px;" type="text" class="form-control" id="Filtro" placeholder="Buscar Producto..." @bind-value="Filter" />
+                        </div>
+                        <div class="mx-1">
+                            <button id="filtar" type="button" class="btn btn-outline-primary" @onclick="ApplyFilterAsync"><i class="oi oi-layers" /> Filtrar</button>
+                            <button id="limpiar" type="button" class="btn btn-outline-danger" @onclick="CleanFilterAsync"><i class="oi oi-ban" /> Limpiar</button>
+                            
+                        </div>                      
+                    </div>
+
+                    <div style="width: 1036px; height: 267px; overflow-x: scroll; overflow-y: scroll;">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>                                  
+                                    <th style="font-size: 15px;">Nombre</th>
+                                    <th style="font-size: 15px;">Tipo Empaque</th>
+                                    <th style="font-size: 15px;">Capacidad Max Contenedor Grande</th>
+                                    <th style="font-size: 15px;">Capacidad Max Contenedor Mediano</th>
+                                    <th style="font-size: 15px;">Capacidad Max Caja</th>
+                                    <th style="font-size: 15px;">Cantidad Precintos Cierre</th>
+                                    <th style="font-size: 15px;">Cantidad Precintos Retorno</th>
+                                    @*<th style="font-size: 15px;">Capacidad Max Acta</th>*@
+                                    <th style="font-size: 15px;">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Productos != null)
+                                {
+
+                                    @foreach (var producto in Productos)
+                                    {
+                                        string cadenaEdit = $"{@producto.Id}-{producto.Id_Cliente}-{producto.Id_Tipo}-{NombreCliente}";
+                                        <tr>
+                                            
+                                            <td style="font-size: 12px;">
+                                                @producto.Nombre
+                                            </td>
+                                            <td style="font-size: 12px;">
+                                                @if (producto.Id_Tipo == 1)
+                                                {
+                                                    <label>Contenedor</label>
+                                                }
+                                                else
+                                                {
+                                                    <label>Caja</label>
+                                                }                                             
+                                            </td>
+                                            <td style="font-size: 12px;">
+                                                @producto.CapacidadMaxContenedor
+                                            </td>
+                                            <td style="font-size: 12px;">
+                                                @producto.CapacidadMinContenedor
+                                            </td>
+                                            <td style="font-size: 12px;">
+                                                @producto.CapacidadMaxCaja
+                                            </td>
+                                            <td style="font-size: 12px;">
+                                                @producto.CantidadPrecintoCierre
+                                            </td>
+                                            <td style="font-size: 12px;">
+                                                @producto.CantidadPrecintoRetorno                                         
+                                            </td>
+                                            @*<td style="font-size: 12px;">
+                                                @producto.CapacidadMaxBolsaSeguridad
+                                            </td>*@
+                                            <td style="font-size: 12px;">
+                                                @if (producto.Estado == true)
+                                                {
+                                                    <p>Activo</p>
+                                                }
+                                                else
+                                                {
+                                                    <p>Inactivo</p>
+
+                                                }
+                                            </td>
+
+                                            <td style="font-size: 12px;width: 10px;">
+                                                @if (producto.Estado == true)
+                                                {
+                                                    
+                                                    <a href="/EditProducto/@cadenaEdit" class="btn btn-dark"><i class="oi oi-pencil" /></a>
+                                                }
+                                            </td>
+
+                                            <td style="font-size: 12px;width: 10px;">
+                                                @if (producto.Estado != true)
+                                                {
+                                                    <button class="btn btn-success" @onclick=@(() => State(producto.Id))><i class="fa-sharp fa-solid fa-check"></i></button>
+                                                }
+                                                else
+                                                {
+                                                    <button class="btn btn-danger" @onclick=@(() => State(producto.Id))><i class="fa-solid fa-x"></i></button>
+                                                }
+
+                                            </td>
+                                        </tr>
+                                    }
+
+                                }
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </body>
+    </GenericList>
+
+}
+
+
+@code {
+
+    public List<tblProducto>? Productos { get; set; }
+    public List<tblCliente>? Clientes { get; set; }
+    public List<tblCliente>? ClientesAsignados = new();
+    public List<tblDetalleRolCliente>? ClientesRol { get; set; }
+
+    private AuthenticationState authState;
+    private ClaimsPrincipal user;
+
+
+    List<tblProducto> ProductosPaginado = new();
+    List<tblProducto> ProductosFilter = new();
+    private bool toFeach = false;
+    private bool ToFilter = false;
+    private int currentPage = 1;
+    private int totalPages;
+    private bool ClienteSelecc = false;
+    private string NombreCliente = null;
+    private string crearProducto = "";
+    private string ParametroNombreCliente;
+    private ChangeEventArgs variable = new();
+    private int clienteId;
+    private int ParametroIdCLiente;
+    private string userRole;
+
+    private bool miAtributo = false;
+    private Timer timer;
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string Page { get; set; } = string.Empty;
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string Filter { get; set; } = string.Empty;
+
+    [Parameter]
+    public string valor { get; set; } = string.Empty;
+
+    private System.Threading.Timer dbConnectionTimer;
+
+    protected async override Task OnInitializedAsync()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            // Obtener el rol del usuario (asumiendo que estás utilizando roles)
+            userRole = user.FindFirst(ClaimTypes.Role)?.Value;
+        }
+
+        string UserName = user.Identity.Name;
+        if (UserName != null)
+        {
+            await LoadClientes();
+            if (valor != "0")
+            {
+                ClienteSelecc = true;
+                int page = 1;
+                var Parametros = valor.Split("-");
+                ParametroIdCLiente = Convert.ToInt32(Parametros[0]);
+                ParametroNombreCliente = Parametros[1];
+                NombreCliente = ParametroNombreCliente;
+                var responseHttProductosTc = await repository.Get<List<tblProducto>>($"/api/productos/ProductosCliente?cliente={ParametroIdCLiente}");
+                Productos = responseHttProductosTc.Response;
+                crearProducto = $"{ParametroIdCLiente}-{NombreCliente}";
+
+                int redondeo = (int)Math.Ceiling(Productos.Count / 10.0);
+                totalPages = redondeo;
+
+                int startIndex = (page - 1) * 10;
+                int endIndex = Math.Min(startIndex + 10, Productos.Count);
+
+                // Mostramos los clientes en el rango determinado
+                for (int i = startIndex; i < endIndex; i++)
+                {
+                    ProductosPaginado.Add(Productos[i]);
+                }
+
+                Productos = ProductosPaginado;
+            }
+        }
+        
+
+        
+
+    }
+
+    private async Task ClienteSeleccionado(ChangeEventArgs e)
+    {
+        try
+        {
+            int page = 1;
+            currentPage = page;
+            Filter = string.Empty;
+            var values = e.Value.ToString().Split('|');
+            if (values[0] == "0")
+            {
+                ClienteSelecc = false;
+                Productos.Clear();
+                Productos = null;
+                return;
+            }
+            if (Productos is null)
+            {
+            }
+            else
+
+            {
+                Productos.Clear();
+                NombreCliente = "";
+            }
+
+            clienteId = Convert.ToInt32(values[0]);           
+            var clienteNombre = values[1];
+            NombreCliente = clienteNombre;
+            variable = e;
+            crearProducto = e.Value.ToString().Replace("|","-");
+
+            ClienteSelecc = true;
+            var responseHttProductos = await repository.Get<List<tblProducto>>($"/api/productos/ProductosCliente?cliente={clienteId}");
+            Productos = responseHttProductos.Response;
+
+
+
+
+            int redondeo = (int)Math.Ceiling(Productos.Count / 10.0);
+            totalPages = redondeo;
+
+            int startIndex = (page - 1) * 10;
+            int endIndex = Math.Min(startIndex + 10, Productos.Count);
+
+            // Mostramos los clientes en el rango determinado
+            for (int i = startIndex; i < endIndex; i++)
+            {
+                ProductosPaginado.Add(Productos[i]);
+            }
+
+            Productos = ProductosPaginado;
+
+        }
+        catch (Exception ex)
+        {
+
+            throw;
+        }
+
+    }
+
+
+
+
+
+    private async Task LoadClientes(int page = 1)
+    {
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var User = authState.User;
+        var Cadena = Configuracion.GetSection("VariableApi")["AuthenticationApi"];
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            // Obtener el rol del usuario (asumiendo que estás utilizando roles)
+            userRole = user.FindFirst(ClaimTypes.Role)?.Value;
+        }
+
+        string UserName = user.Identity.Name;
+
+        var responseHpptUsuario = await repository.Get<UserDTO>($"{Cadena}/api/Accounts/GetUserName?UserName={UserName}");
+        if (responseHpptUsuario.HttpResponseMessage.StatusCode.ToString() == "Unauthorized")
+        {
+            var Message = "La sesión ha expirado, Inicia sesión de nuevo, por favor";
+            await sweetAlertService.FireAsync("Sesión expirada", Message, SweetAlertIcon.Error);
+            await loginService.LogoutAsync();
+            navigationManager.NavigateTo("/Login");
+           
+        }  
+        if (responseHpptUsuario.Error)
+        {
+            string? message = await responseHpptUsuario.GetErrorMessageAsync();
+            bool comienzaConCorcheteAbierto = message.StartsWith("[");
+            bool terminaConCorcheteCerrado = message.EndsWith("]");
+
+            if (comienzaConCorcheteAbierto && terminaConCorcheteCerrado)
+            {
+                List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                message = string.Join("\n", Errors.Select(t => t.description));
+            }
+            else
+            {
+                message = "[" + message + "]";
+                List<ErrorDTO> Errors = JsonSerializer.Deserialize<List<ErrorDTO>>(message);
+                message = string.Join("\n", Errors.Select(t => t.description));
+            }
+
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+        var responseHttUserMarquesa = await repository.Get<tblUsuario>($"/api/roles/GetUserUserName?UserName={responseHpptUsuario.Response.id}");
+        var responseHttRol = await repository.Get<tblRol>($"/api/roles/GetRolCodigo?Id={responseHttUserMarquesa.Response.Id_Rol}");
+        var responseHttRolCliente = await repository.Get<List<tblDetalleRolCliente>>($"/api/clientes/GetClientesPorRol?idRol={responseHttRol.Response.Id}");
+        ClientesRol = responseHttRolCliente.Response!;
+        var responseHtt = await repository.Get<List<tblCliente>>("/api/clientes");
+        Clientes = responseHtt.Response;
+        Clientes.RemoveAll(item => item.Estado == false);
+
+        foreach (var item in Clientes)
+        {
+            foreach (var item2 in ClientesRol)
+            {
+                if (item.Id == item2.Id_Cliente)
+                {
+                    ClientesAsignados.Add(item);
+                }
+            }
+            
+        }
+
+    }
+
+    
+
+
+    private async Task LoadAsync(int page)
+    {
+        if (clienteId == 0)
+        {
+            clienteId = ParametroIdCLiente;
+        }
+        var responseHttProductosTc = await repository.Get<List<tblProducto>>($"/api/productos/ProductosCliente?cliente={clienteId}");
+        Productos = responseHttProductosTc.Response;
+        ClienteSelecc = true;
+
+        if (ToFilter == true)
+        {
+            ProductosFilter = new();
+            foreach (var item in Productos)
+            {
+                if (item.Nombre.ToLower().Contains(Filter.ToLower()) || item.Id_Tipo.ToString() == Filter || 
+                    item.CapacidadMaxContenedor.ToString() == Filter || item.CapacidadMinContenedor.ToString() == Filter ||
+                    item.CapacidadMaxCaja.ToString() == Filter || item.CantidadPrecintoCierre.ToString() == Filter ||
+                    item.CantidadPrecintoRetorno.ToString() == Filter )
+                {
+                    ProductosFilter.Add(item);
+                }
+            }
+
+            Productos = ProductosFilter;
+            ToFilter = false;
+        }
+        int redondeo = (int)Math.Ceiling(Productos.Count / 10.0);
+        totalPages = redondeo;
+
+        int startIndex = (page - 1) * 10;
+        int endIndex = Math.Min(startIndex + 10, Productos.Count);
+        ProductosPaginado.Clear();
+        // Mostramos los clientes en el rango determinado
+        for (int i = startIndex; i < endIndex; i++)
+        {
+            ProductosPaginado.Add(Productos[i]);
+        }
+
+        Productos = ProductosPaginado;
+
+    }
+
+
+    private async Task State(int idProducto)
+    {
+        //var result = await sweetAlertService.FireAsync(new SweetAlertOptions
+        //    {
+        //        Title = "Confirmación",
+        //        Text = "¿Estás seguro de que quieres cambiar el estado de actividad de el producto?",
+        //        Icon = SweetAlertIcon.Question,
+        //        ShowCancelButton = true
+        //    });
+
+        //var confirm = string.IsNullOrEmpty(result.Value);
+
+        //if (confirm)
+        //{
+        //    return;
+        //}
+
+        var responseHTTP = await repository.Post($"/api/productos/UpdateProductoEstado?idProducto={idProducto}", idProducto);
+
+        if (responseHTTP.Error)
+        {
+            if (responseHTTP.HttpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                Filter = string.Empty;
+                currentPage = 1;
+                int valor = 0;
+                navigationManager.NavigateTo($"/Productos/{valor}");
+                await LoadAsync(1);
+
+            }
+            else
+            {
+                var mensajeError = await responseHTTP.GetErrorMessageAsync();
+                await sweetAlertService.FireAsync("Error", mensajeError, SweetAlertIcon.Error);
+            }
+        }
+        else
+        {
+            await ClienteSeleccionado(variable);
+            //await LoadAsync(currentPage);
+            
+
+
+        }
+    }
+
+
+    private async Task CleanFilterAsync()
+    {
+        Filter = string.Empty;
+        await ApplyFilterAsync();
+    }
+
+    private async Task ApplyFilterAsync()
+    {
+        int page = 1;
+        ToFilter = true;
+        currentPage = page;
+        await LoadAsync(page);
+
+    }
+    private async Task SelectedPageAsync(int page)
+    {
+        currentPage = page;
+        await LoadAsync(page);
+
+    }
+
+
+
+}

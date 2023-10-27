@@ -1,0 +1,138 @@
+﻿@page "/EditPoblacion/{cadenaEdit}"
+@using Microsoft.AspNetCore.Authorization;
+@inject IRepository repository
+@inject IConfiguration Configuracion
+@inject SweetAlertService sweetAlertService
+@inject NavigationManager navigationManager
+@using Microsoft.AspNetCore.Identity;
+@inject ILoginService loginService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using System.Security.Claims;
+@attribute [Authorize]
+
+@if (tblPoblacion is null)
+{
+    <div class="spinner" />
+}
+else
+{
+    <h3>Editar Poblacion [Cliente:@NombreCliente]-[Producto:@NombreProducto]</h3>
+
+    <EditForm Model="tblPoblacion" OnValidSubmit="EditPoblacionAsync">
+        <DataAnnotationsValidator />
+        <h5>Campo obligatorio *</h5>
+        <div class="row">
+            <div class="col-6">
+                <div class="mb-3">
+                    <label style="margin-bottom: 10px;">Nombre*:</label>
+                    <div style="width: 260px;">
+                        <InputText id="Nombre" class="form-control" @bind-Value="@tblPoblacion.Nombre" oninput="this.value = this.value.toUpperCase()" />
+                        <ValidationMessage For="@(() => tblPoblacion.Nombre)" />
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label style="margin-bottom: 10px;">¿Es población adicional?</label>
+                    <div style="width: 260px;">
+                        <InputCheckbox id="Adicional" @bind-Value="@tblPoblacion.Adicional" />
+                        <ValidationMessage For="@(() => tblPoblacion.Adicional)" />
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label style="margin-bottom: 10px;">¿Es intérpetre?</label>
+                    <div style="width: 260px;">
+                        <InputCheckbox id="Intérprete" @bind-Value="@tblPoblacion.Interprete" />
+                        <ValidationMessage For="@(() => tblPoblacion.Interprete)" />
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <button id="atras" class="btn btn-danger" onclick="@Atras">Atrás</button>
+        <button id="Editar" class="btn btn-primary" type="submit">Editar</button>
+
+    </EditForm>
+}
+
+
+@code {
+    tblPoblacion tblPoblacion = new();
+    public int id = 0;
+    public int IdProducto = 0;
+    public int IdCliente = 0;
+    public string NombreCliente = "";
+    public string NombreProducto = "";
+    private string userRole;
+
+    [Parameter]
+    public string cadenaEdit { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            // Obtener el rol del usuario (asumiendo que estás utilizando roles)
+            userRole = user.FindFirst(ClaimTypes.Role)?.Value;
+        }
+
+        string UserName = user.Identity.Name;
+        if (UserName != null)
+        {
+            await CargaDeDatos();
+        }
+
+    }
+
+    private async Task EditPoblacionAsync()
+    {
+        var responseHttpMarquesa = await repository.Post("/api/poblacion/UpdatePoblaciones", tblPoblacion);
+
+        if (responseHttpMarquesa.Error)
+        {
+            var message = await responseHttpMarquesa.GetErrorMessageAsync();
+            if (message.Contains("ya existe."))
+            {
+                message = "La población '" + tblPoblacion.Nombre + "' ya existe";
+            }
+
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+        var valor = $"{IdCliente};{NombreCliente};{IdProducto};{NombreProducto}";
+        navigationManager.NavigateTo($"/Poblacion/{valor}");
+        await sweetAlertService.FireAsync("Proceso terminado", "La población fue editada con éxito", SweetAlertIcon.Success);
+        
+    }
+    private async Task CargaDeDatos()
+    {
+        var atribtos = cadenaEdit.Split(";");
+        id = Convert.ToInt32(atribtos[0]);
+        IdCliente = Convert.ToInt32(atribtos[1]);
+        NombreCliente = atribtos[2];
+        IdProducto = Convert.ToInt32(atribtos[3]);
+        NombreProducto = atribtos[4];
+
+        if (tblPoblacion.Nombre == null)
+        {
+            var responseHttpMarquesa = await repository.Get<tblPoblacion>($"/api/poblacion/GetPoblacion?Id={id}");
+            if (responseHttpMarquesa.Error)
+            {
+                var message = await responseHttpMarquesa.GetErrorMessageAsync();
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+            tblPoblacion = responseHttpMarquesa.Response!;
+            await CargaDeDatos();
+        }
+
+
+    }
+    public void Atras()
+    {
+        int valor = 0;
+        navigationManager.NavigateTo($"/Poblacion/{valor}");
+    }
+
+}

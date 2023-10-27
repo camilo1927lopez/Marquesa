@@ -1,0 +1,367 @@
+﻿@page "/EditProducto/{cadenaEdit}"
+@using Microsoft.AspNetCore.Authorization;
+@inject IRepository repository
+@inject IConfiguration Configuracion
+@inject SweetAlertService sweetAlertService
+@inject NavigationManager navigationManager
+@using Microsoft.AspNetCore.Identity;
+@using System.Security.Claims;
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ILoginService loginService
+@attribute [Authorize]
+
+@if (Productotbl is null)
+{
+    <div class="spinner" />
+}
+else
+{
+    <h3>Editar Producto - [@NombreCliente]</h3>
+    <EditForm Model="Productotbl" OnValidSubmit="EditProductoAsync">
+        <DataAnnotationsValidator />
+        <h5>Campo obligatorio *</h5>
+        <div class="row">
+            <div class="col-6">
+                <div class="mb-3">
+                    <label style="margin-bottom: 10px;">Nombre producto*:</label>
+                    <div style="width: 260px;">
+                        <InputText id="Nombre" class="form-control" @bind-Value="@Productotbl.Nombre" oninput="this.value = this.value.toUpperCase()" />
+                        <ValidationMessage For="@(() => Productotbl.Nombre)" />
+                    </div>
+                </div>
+                @if (Productotbl.Id_Tipo == 1)
+                {
+                    <div class="mb-3">
+                        <label style="margin-bottom: 10px;width: 300px;">Capacidad máxima cuadernillos X contenedor grande*:</label>
+                        <div style="width: 260px;">
+                            <InputNumber id="CapacidadMaxContenedor" class="form-control" @bind-Value="@Productotbl.CapacidadMaxContenedor" />
+                            <ValidationMessage For="@(() => Productotbl.CapacidadMaxContenedor)" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label style="margin-bottom: 10px;width: 300px;">Capacidad máxima cuadernillos X contenedor mediano*:</label>
+                        <div style="width: 260px;">
+                            <InputNumber id="CapacidadMinContenedor" class="form-control" @bind-Value="@Productotbl.CapacidadMinContenedor" />
+                            <ValidationMessage For="@(() => Productotbl.CapacidadMinContenedor)" />
+                        </div>
+                    </div>
+                }
+                @if (Productotbl.Id_Tipo == 2)
+                {
+                    <div class="mb-3">
+                        <label style="margin-bottom: 10px;width: 300px;">Capacidad máxima cuadernillos X Caja*:</label>
+                        <div style="width: 260px;">
+                            <InputNumber id="CapacidadMaxCaja" class="form-control" @bind-Value="@Productotbl.CapacidadMaxCaja" />
+                            <ValidationMessage For="@(() => Productotbl.CapacidadMaxCaja)" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label style="margin-bottom: 10px;">Capacidad máxima cuadernillos X acta*:</label>
+                        <div style="width: 260px;">
+                            <InputNumber id="CapacidadMaxBolsaSeguridad" class="form-control" @bind-Value="@Productotbl.CapacidadMaxBolsaSeguridad" />
+                            <ValidationMessage For="@(() => Productotbl.CapacidadMaxBolsaSeguridad)" />
+                        </div>
+                    </div>
+
+
+                }
+
+
+            </div>
+            <div class="col-6">
+                <div class="mb-3">
+                    <label style="margin-bottom: 10px;width: 200px;">Tipo empaque*:</label>
+                    <select class="form-select" @bind="Productotbl.Id_Tipo" style="width: 260px;">
+                        <option value="0">-- Seleccione un area --</option>
+                        @if (ListaTipoEmpaque is not null)
+                        {
+                            @foreach (var Empaque in ListaTipoEmpaque)
+                            {
+                                <option value="@Empaque.Id">@Empaque.Nombre</option>
+                            }
+                        }
+                    </select>
+                    <ValidationMessage For="@(() => Productotbl.Id_Tipo)" />
+                </div>
+                @if (Productotbl.Id_Tipo == 2)
+                {
+                    <div class="mb-3">
+                        <label style="margin-bottom: 10px;">Cantidad precinto retorno X contenedor o caja*:</label>
+                        <div style="width: 260px;">
+                            <InputNumber id="CantidadPrecintoRetorno" class="form-control" @bind-Value="@Productotbl.CantidadPrecintoRetorno" />
+                            <ValidationMessage For="@(() => Productotbl.CantidadPrecintoRetorno)" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label style="margin-bottom: 10px;">Cantidad precinto cierre X contenedor o caja*:</label>
+                        <div style="width: 260px;">
+                            <InputNumber id="CantidadPrecintoCierre" class="form-control" @bind-Value="@Productotbl.CantidadPrecintoCierre" />
+                            <ValidationMessage For="@(() => Productotbl.CantidadPrecintoCierre)" />
+                        </div>
+                    </div>
+
+
+
+                }
+
+                @if (Productotbl.Id_Tipo == 1)
+                {
+
+                    <div class="mb-3">
+                        <label style="margin-bottom: 10px;">Cantidad precinto retorno X contenedor o caja*:</label>
+                        <div style="width: 260px;">
+                            <InputNumber id="CantidadPrecintoRetorno" class="form-control" @bind-Value="@Productotbl.CantidadPrecintoRetorno" />
+                            <ValidationMessage For="@(() => Productotbl.CantidadPrecintoRetorno)" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label style="margin-bottom: 10px;">Cantidad precinto cierre X contenedor o caja*:</label>
+                        <div style="width: 260px;">
+                            <InputNumber id="CantidadPrecintoCierre" class="form-control" @bind-Value="@Productotbl.CantidadPrecintoCierre" />
+                            <ValidationMessage For="@(() => Productotbl.CantidadPrecintoCierre)" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label style="margin-bottom: 10px;">Capacidad máxima cuadernillos X acta*:</label>
+                        <div style="width: 260px;">
+                            <InputNumber id="CapacidadMaxBolsaSeguridad" class="form-control" @bind-Value="@Productotbl.CapacidadMaxBolsaSeguridad" />
+                            <ValidationMessage For="@(() => Productotbl.CapacidadMaxBolsaSeguridad)" />
+                        </div>
+                    </div>
+
+
+                }
+
+            </div>
+        </div>
+        <button id="atras" class="btn btn-danger" onclick="@Atras">Atrás</button>
+        <button id="Editar" class="btn btn-primary" type="submit">Editar</button>
+
+    </EditForm>
+
+}
+
+
+
+
+
+@code {
+    CrearProductoDTO Producto = new();
+    public List<tblTipo>? ListaTipoEmpaque = new();
+    tblProducto Productotbl = new();
+    private string NombreCliente = "";
+    private int idProduc = 0;
+    private string userRole;
+
+    [Parameter]
+    public string cadenaEdit { get; set; }
+    protected async override Task OnInitializedAsync()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            // Obtener el rol del usuario (asumiendo que estás utilizando roles)
+            userRole = user.FindFirst(ClaimTypes.Role)?.Value;
+        }
+
+        string UserName = user.Identity.Name;
+        if (UserName != null)
+        {
+            await CargaDeDatos();
+            await LoadTipoEmpaque();
+
+        }
+
+
+    }
+
+
+    private async Task LoadTipoEmpaque(int page = 1)
+    {
+        var responseHttTipoEmpaque = await repository.Get<tblTipoGrupo>("/api/productos/TipoGrupo");
+        tblTipoGrupo TipoEmpaque = responseHttTipoEmpaque.Response!;
+
+        var responseHttpTipo = await repository.Get<List<tblTipo>>($"/api/productos/Tipos?idTGrupo={TipoEmpaque.Id}");
+
+        ListaTipoEmpaque = responseHttpTipo.Response!;
+
+    }
+    private async Task CargaDeDatos()
+    {
+        var atribtos = cadenaEdit.Split("-");
+
+        NombreCliente = atribtos[3];
+        string cadenaid = atribtos[0];
+        int idProducto = Convert.ToInt32(cadenaid);
+
+        if (Productotbl.Nombre == null)
+        {
+            var responseHttpMarquesa = await repository.Get<tblProducto>($"/api/productos/ProductoEspecifico?producto={idProducto}");
+            if (responseHttpMarquesa.Error)
+            {
+                var message = await responseHttpMarquesa.GetErrorMessageAsync();
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+            Productotbl = responseHttpMarquesa.Response!;
+            await CargaDeDatos();
+        }
+
+
+
+    }
+
+    private async Task EditProductoAsync()
+    {
+        
+
+        if (Productotbl.Id_Tipo == null || Productotbl.Id_Tipo == 0)
+        {
+            var message = "Para crear un producto se debe configurar al menos un tipo de empaque";
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+        if (Productotbl.CapacidadMaxBolsaSeguridad <= 0 || Productotbl.CapacidadMaxBolsaSeguridad == null)
+        {
+            var message = "La capacidad máxima de cuadernillos por acta no puede ser 0 o nula";
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+
+        
+
+        if (Productotbl.Id_Tipo == 1)
+        {
+            if ((Productotbl.CapacidadMaxContenedor <= 0 || Productotbl.CapacidadMaxContenedor == null) && (Productotbl.CapacidadMinContenedor <= 0 || Productotbl.CapacidadMinContenedor == null))
+            {
+                var message = "Se debe configurar al menos un contenedor (Grande o mediano)";
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+
+            if (Productotbl.CapacidadMaxContenedor == null && Productotbl.CapacidadMinContenedor == null)
+            {
+                var message = "Debe configurar una capacidad máxima mayor a 0 para alguno de los dos contenedores (Grande o Mediano)";
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+            if (Productotbl.CapacidadMaxContenedor > 0)
+            {
+                if (Productotbl.CapacidadMaxContenedor < Productotbl.CapacidadMinContenedor)
+                {
+                    var message = "La capacidad del contenedor mediano no puede ser mayor a la capacidad del contenedor grande";
+                    await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                    return;
+                }
+
+                if (Productotbl.CapacidadMaxContenedor < Productotbl.CapacidadMaxBolsaSeguridad)
+                {
+                    var message = "La capacidad máxima del acta no puede ser mayor a la capacidad del contenedor grande";
+                    await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                    return;
+                }
+            }
+
+            if ((Productotbl.CapacidadMaxContenedor == null || Productotbl.CapacidadMaxContenedor == 0) && (Productotbl.CapacidadMinContenedor != null || Productotbl.CapacidadMinContenedor != 0))
+            {
+
+                if (Productotbl.CapacidadMinContenedor < Productotbl.CapacidadMaxBolsaSeguridad)
+                {
+                    var message = "La capacidad máxima del acta no puede ser mayor a la capacidad del contenedor mediano";
+                    await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                    return;
+                }
+
+            }
+
+
+        }
+
+        if (Productotbl.Id_Tipo == 2)
+        {
+            if (Productotbl.CapacidadMaxCaja <= 0)
+            {
+                var message = "La capacidad máxima de la caja no puede ser 0 o nula";
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+            if (Productotbl.CapacidadMaxCaja < Productotbl.CapacidadMaxBolsaSeguridad)
+            {
+                var message = "La capacidad máxima del acta no puede ser mayor a la capacidad de la caja";
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+        }
+
+        if ((Productotbl.CapacidadMaxContenedor != 0 || Productotbl.CapacidadMinContenedor != 0) && Productotbl.Id_Tipo == 1)
+        {
+            Productotbl.CapacidadMaxCaja = 0;
+        }
+
+        if (Productotbl.CapacidadMinContenedor == null)
+        {
+            Productotbl.CapacidadMinContenedor = 0;
+        }
+
+        if (Productotbl.CapacidadMaxContenedor == null)
+        {
+            Productotbl.CapacidadMaxContenedor = 0;
+        }
+
+        if (Productotbl.CapacidadMaxCaja == null)
+        {
+            Productotbl.CapacidadMaxCaja = 0;
+        }
+
+        if (Productotbl.Id_Tipo == 2)
+        {
+            Productotbl.CapacidadMaxContenedor = 0;
+            Productotbl.CapacidadMinContenedor = 0;
+        }
+
+        if (Productotbl.Id_Tipo == 1)
+        {
+            Productotbl.CapacidadMaxCaja = 0;
+        }
+
+        
+
+
+        var responseHttpMarquesa = await repository.Post("/api/productos/EditarProducto", Productotbl);
+
+        if (responseHttpMarquesa.Error)
+        {
+            var message = await responseHttpMarquesa.GetErrorMessageAsync();
+            if (message.Contains("ya existe."))
+            {
+                message = "El producto '" + Producto.Nombre + "' ya existe";
+            }
+            if (message.Contains("CantidadPrecintoRetorno"))
+            {
+                message = "La Cantidad precinto retorno X contenedor o caja no puede ser nula";
+            }
+
+            if (message.Contains("CantidadPrecintoCierre"))
+            {
+                message = "La Cantidad precinto cierre X contenedor o caja no puede ser nula";
+            }
+
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+        var valor = $"{Producto.Id_Cliente}-{NombreCliente}";
+        navigationManager.NavigateTo($"/Productos/{valor}");
+        await sweetAlertService.FireAsync("Proceso terminado", "El Producto fue editado con éxito", SweetAlertIcon.Success);
+
+    }
+
+
+    public void Atras()
+    {
+        int valor = 0;
+        navigationManager.NavigateTo($"/Productos/{valor}");
+    }
+}

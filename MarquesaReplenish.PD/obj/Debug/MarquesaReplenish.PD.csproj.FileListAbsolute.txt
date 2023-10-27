@@ -1,0 +1,9 @@
+D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.PD\bin\Debug\MarquesaReplenish.PD.dll
+D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.PD\bin\Debug\MarquesaReplenish.PD.pdb
+D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.PD\bin\Debug\BDManager.dll
+D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.PD\bin\Debug\BDManager.pdb
+D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.PD\obj\Debug\MarquesaReplenish.PD.csproj.AssemblyReference.cache
+D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.PD\obj\Debug\MarquesaReplenish.PD.csproj.CoreCompileInputs.cache
+D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.PD\obj\Debug\MarquesaReplenish.PD.csproj.CopyComplete
+D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.PD\obj\Debug\MarquesaReplenish.PD.dll
+D:\Team\Produccion\MarquesaReplenish\MarquesaReplenish_Frontend_CL25052023_branch\MarquesaReplenish.PD\obj\Debug\MarquesaReplenish.PD.pdb
